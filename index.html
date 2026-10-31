@@ -1,0 +1,1090 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inventory Review</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400..800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F5F6FB;--panel:#FFFFFF;--ink:#16182D;--muted:#6B7092;--line:#ECEEF6;--track:#EEF0F8;
+  --primary:#6D4AFF;--soft:#C3B5FF;--warn:#FF8A3D;--neg:#F43F5E;--pos:#10B981;--grey:#C9CDDD;--accent:#14C8E0;
+  --hover:#F7F5FF;--tint:#F1EDFF;
+  --shadow:0 1px 2px rgba(22,24,45,.04),0 10px 30px -12px rgba(52,40,140,.16);
+  --hero:linear-gradient(120deg,#5B3BFF 0%,#8B5CF6 42%,#EC4899 78%,#FF8A3D 100%);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0B0C18;--panel:#151729;--ink:#EEF0FF;--muted:#9A9FC2;--line:#262943;--track:#23263E;
+    --primary:#9C86FF;--soft:#4E3FA6;--warn:#FF9F5A;--neg:#FB6F86;--pos:#34D399;--grey:#3B3F5E;--accent:#38D9EE;
+    --hover:#1C1F36;--tint:#221E44;--shadow:0 1px 2px rgba(0,0,0,.3);
+    --hero:linear-gradient(120deg,#3A23C9 0%,#6B3FD8 45%,#B8327F 80%,#C9612A 100%);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0B0C18;--panel:#151729;--ink:#EEF0FF;--muted:#9A9FC2;--line:#262943;--track:#23263E;
+  --primary:#9C86FF;--soft:#4E3FA6;--warn:#FF9F5A;--neg:#FB6F86;--pos:#34D399;--grey:#3B3F5E;--accent:#38D9EE;
+  --hover:#1C1F36;--tint:#221E44;--shadow:0 1px 2px rgba(0,0,0,.3);
+  --hero:linear-gradient(120deg,#3A23C9 0%,#6B3FD8 45%,#B8327F 80%,#C9612A 100%);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:"Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",sans-serif;font-size:14px;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit}
+.wrap{max-width:1360px;margin:0 auto;padding:0 32px}
+/* ---------- header ---------- */
+.hd{background:var(--hero);color:#fff;padding-bottom:18px;position:relative;overflow:hidden}
+.hd::after{content:"";position:absolute;right:-120px;top:-160px;width:420px;height:420px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.22),rgba(255,255,255,0) 70%);pointer-events:none}
+.hd .wrap{position:relative;z-index:1}
+.top{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;padding-top:26px}
+.meta{font-size:13px;color:rgba(255,255,255,.82);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.link{background:rgba(255,255,255,.18);border:0;padding:3px 10px;border-radius:999px;cursor:pointer;color:#fff;font-weight:600;font-size:12px}
+.link:hover{background:rgba(255,255,255,.3)}
+.tag{font-size:11px;padding:2px 9px;border-radius:999px;background:rgba(255,255,255,.14);color:#fff;font-weight:600}
+.tag.sample{background:#fff;color:#C2410C}
+h1{font-weight:500;font-size:30px;margin:0;letter-spacing:-.6px;color:#fff}
+h1 b{font-weight:800}
+.sel{display:flex;align-items:center;gap:12px;font-size:13px;color:rgba(255,255,255,.85)}
+.sel select{font:inherit;font-size:14px;font-weight:600;color:#16182D;background:#fff;border:0;padding:11px 40px 11px 16px;min-width:230px;appearance:none;border-radius:12px;box-shadow:0 6px 20px -8px rgba(0,0,0,.35);
+  background-image:linear-gradient(45deg,transparent 50%,#6D4AFF 50%),linear-gradient(135deg,#6D4AFF 50%,transparent 50%);background-position:calc(100% - 20px) 50%,calc(100% - 15px) 50%;background-size:5px 5px;background-repeat:no-repeat}
+.pillars,.subs{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none}
+.pillars{margin-top:24px}
+.pillars::-webkit-scrollbar,.subs::-webkit-scrollbar{display:none}
+.pillars button,.subs button{background:none;border:0;cursor:pointer;white-space:nowrap;border-radius:999px;transition:background .15s,color .15s}
+.pillars button{font-size:15px;font-weight:600;padding:9px 20px;color:rgba(255,255,255,.85)}
+.pillars button:hover{background:rgba(255,255,255,.14)}
+.pillars button[aria-selected=true]{background:#fff;color:#5B3BFF;box-shadow:0 6px 18px -8px rgba(0,0,0,.4)}
+.subs{margin-top:12px}
+.subs button{font-size:13px;font-weight:600;padding:6px 14px;color:rgba(255,255,255,.8);border:1px solid rgba(255,255,255,.28)}
+.subs button:hover{background:rgba(255,255,255,.12)}
+.subs button[aria-selected=true]{background:rgba(255,255,255,.24);color:#fff;border-color:rgba(255,255,255,.6)}
+.subs:empty{display:none}
+/* ---------- page bar ---------- */
+.bar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:24px 0 18px;font-size:13px;color:var(--muted)}
+.crumb{margin:20px 0 -8px;font-size:13px;color:var(--muted)}
+.crumb b{color:var(--primary);font-weight:700}
+.seg{display:flex;align-items:center;gap:4px;background:var(--panel);padding:4px;border-radius:999px;box-shadow:var(--shadow)}
+.seg span{padding:0 8px 0 10px;font-size:12px}
+.seg button{background:none;border:0;padding:6px 14px;cursor:pointer;color:var(--muted);border-radius:999px;font-weight:600;font-size:12px}
+.seg button[aria-pressed=true]{background:var(--primary);color:#fff}
+/* ---------- cards ---------- */
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+.grid.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.span2{grid-column:span 2}.span3{grid-column:1/-1}
+.card{background:var(--panel);border-radius:18px;padding:22px 22px 18px;display:flex;flex-direction:column;box-shadow:var(--shadow);min-width:0;position:relative}
+.card.tbc{border:1.5px dashed var(--soft);background:transparent;box-shadow:none}
+.ch{display:flex;justify-content:space-between;gap:12px;padding-bottom:16px;margin-bottom:16px;min-height:74px;border-bottom:1px solid var(--line)}
+.ch h3{margin:0 0 6px;font-size:16px;font-weight:700;letter-spacing:-.2px;display:flex;align-items:center;gap:10px}
+.ch h3::before{content:"";width:10px;height:10px;border-radius:4px;background:var(--hero);flex:none}
+.ch p{margin:0;color:var(--muted);font-size:13px;line-height:1.45}
+.plus{flex:none;width:30px;height:30px;border:0;border-radius:10px;background:var(--tint);color:var(--primary);cursor:pointer;display:grid;place-items:center;font-size:18px;font-weight:600;line-height:1;padding:0;transition:transform .15s,background .15s}
+.plus:hover{background:var(--primary);color:#fff;transform:rotate(90deg)}
+.lab{font-size:12px;color:var(--muted);margin:0 0 4px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.big{font-size:32px;font-weight:800;margin:0 0 6px;letter-spacing:-1px;font-variant-numeric:tabular-nums}
+.sub{font-size:13px;color:var(--muted);line-height:1.7}
+.sub b{color:var(--ink);font-weight:700}
+.w{color:var(--warn);font-weight:600}.n{color:var(--neg);font-weight:600}.p{color:var(--pos);font-weight:600}
+.foot{margin-top:auto;padding-top:14px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
+.spacer{height:20px}
+.quad{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.quad>div{background:var(--bg);border-radius:12px;padding:12px 14px}
+.quad>div:first-child{background:var(--tint)}
+.quad .v{font-size:20px;font-weight:800;margin-bottom:4px;font-variant-numeric:tabular-nums;letter-spacing:-.4px}
+.quad>div:first-child .v{color:var(--primary)}
+.quad .k{font-size:13px;font-weight:600}.quad .s{font-size:12px;color:var(--muted);margin-top:3px}
+.quad + .foot{margin-top:14px}
+.bullet{margin:4px 0 16px}
+.bullet .row{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;color:var(--muted);margin-bottom:5px}
+.bullet .row b{font-size:16px;color:var(--ink);font-weight:700}
+.bullet .note{font-size:12px;color:var(--muted);margin-top:5px}
+.tbcrows div{border-bottom:1px dashed var(--line);padding:9px 0;color:var(--muted);font-size:13px}
+.obs{margin-top:20px;background:linear-gradient(var(--panel),var(--panel)) padding-box,var(--hero) border-box;border:1.5px solid transparent}
+.obs .cols{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px}
+.obs .cols>div{background:var(--bg);border-radius:14px;padding:16px}
+.obs h4{margin:0 0 8px;font-size:14px;font-weight:700}
+.obs h4 span{color:var(--primary)}
+.obs .t{font-size:13px;line-height:1.55}
+.obs .d{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.5}
+.dash{display:block;width:20px;border-top:2px solid var(--soft);margin:12px 0}
+.empty{color:var(--muted);font-size:13px;padding:24px 0;text-align:center}
+/* ---------- tables ---------- */
+.tw{overflow-x:auto;margin:0 -4px}
+table{width:100%;border-collapse:separate;border-spacing:0;font-size:13px;font-variant-numeric:tabular-nums}
+th{font-weight:600;color:var(--muted);text-align:right;padding:9px 10px;white-space:nowrap;font-size:12px;background:var(--bg)}
+th:first-child{border-radius:10px 0 0 10px}th:last-child{border-radius:0 10px 10px 0}
+td{padding:10px 10px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th:first-child,td:first-child,th.l,td.l{text-align:left}
+th.sort{cursor:pointer;user-select:none}
+th.sort:hover{color:var(--primary)}
+tbody tr.click{cursor:pointer}
+tbody tr.click:hover td{background:var(--hover)}
+tr.tot td{font-weight:800;border-bottom:0;background:var(--tint)}
+tr.tot td:first-child{border-radius:10px 0 0 10px}tr.tot td:last-child{border-radius:0 10px 10px 0}
+.minibar{display:inline-block;vertical-align:middle;width:70px;height:7px;background:var(--track);position:relative;margin-right:8px;border-radius:999px}
+.minibar i{position:absolute;left:0;top:0;bottom:0;background:var(--primary);border-radius:999px}
+.minibar i.w{background:var(--warn)}
+.minibar em{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink);border-radius:2px}
+.pill{display:inline-block;font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px}
+.pill.ok{color:#047857;background:#D1FAE5}
+.pill.am{color:#C2410C;background:#FFEDD5}
+.pill.rd{color:#BE123C;background:#FFE4E6}
+.pill.gr{color:var(--muted);background:var(--track)}
+:root[data-theme="dark"] .pill.ok{color:#6EE7B7;background:rgba(16,185,129,.16)}
+:root[data-theme="dark"] .pill.am{color:#FDBA74;background:rgba(255,138,61,.16)}
+:root[data-theme="dark"] .pill.rd{color:#FDA4AF;background:rgba(244,63,94,.16)}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) .pill.ok{color:#6EE7B7;background:rgba(16,185,129,.16)}
+  :root:not([data-theme="light"]) .pill.am{color:#FDBA74;background:rgba(255,138,61,.16)}
+  :root:not([data-theme="light"]) .pill.rd{color:#FDA4AF;background:rgba(244,63,94,.16)}
+}
+.tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.tools input,.tools select{font:inherit;font-size:13px;color:var(--ink);background:var(--bg);border:1.5px solid transparent;padding:8px 12px;border-radius:10px;outline:none}
+.tools input:focus,.tools select:focus{border-color:var(--primary);background:var(--panel)}
+.tools input{min-width:200px;flex:1;max-width:320px}
+.chip{background:var(--bg);border:0;padding:7px 13px;font-size:12px;font-weight:600;cursor:pointer;color:var(--muted);border-radius:999px}
+.chip[aria-pressed=true]{background:var(--primary);color:#fff}
+.btn{background:var(--tint);border:0;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;color:var(--primary);border-radius:10px}
+.btn:hover{background:var(--primary);color:#fff}
+.btn.pri{background:var(--hero);color:#fff}
+.cnt{margin-left:auto;font-size:12px;color:var(--muted)}
+/* ---------- KRI tiles ---------- */
+.kri .v{font-size:34px;font-weight:800;margin:2px 0 8px;letter-spacing:-1px;font-variant-numeric:tabular-nums}
+.kri .th{font-size:12px;color:var(--muted);line-height:1.6}
+.kri .hdr{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.gauge{height:8px;background:var(--track);position:relative;margin:12px 0 8px;border-radius:999px}
+.gauge i{position:absolute;top:0;bottom:0;left:0;border-radius:999px}
+.gauge em{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink);opacity:.35;border-radius:2px}
+/* ---------- charts ---------- */
+.chart{width:100%;margin-top:6px}
+.chart svg{display:block;width:100%;overflow:visible}
+.chart text{font-family:inherit;font-size:11px;fill:var(--muted)}
+.chart .vl{fill:var(--ink);font-size:11px;font-weight:700}
+.chart .vl.w{fill:var(--warn)}
+.chart rect{rx:4px;ry:4px}
+.c1{fill:var(--primary)}.c2{fill:var(--soft)}.cw{fill:var(--warn)}.cn{fill:var(--neg)}.cg{fill:var(--grey)}.ct{fill:var(--track)}
+.axis{stroke:var(--line);stroke-width:1}
+.tgt{stroke:var(--ink);stroke-width:1.5;stroke-dasharray:3 3}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin:4px 0 2px}
+.legend i{display:inline-block;width:10px;height:10px;margin-right:6px;vertical-align:-1px;border-radius:3px}
+.legend i.c1{background:var(--primary)}.legend i.c2{background:var(--soft)}.legend i.cw{background:var(--warn)}.legend i.cg{background:var(--grey)}.legend i.cn{background:var(--neg)}
+.legend i.ln{height:0;border-top:1.5px dashed var(--ink);width:14px;vertical-align:3px;background:none;border-radius:0}
+.tip{position:fixed;pointer-events:none;background:#16182D;color:#fff;font-size:12px;padding:7px 10px;z-index:50;opacity:0;transition:opacity .1s;max-width:240px;border-radius:8px;box-shadow:0 8px 24px -8px rgba(0,0,0,.4)}
+/* ---------- drawer + dialog ---------- */
+.scrim{position:fixed;inset:0;background:rgba(22,18,60,.35);backdrop-filter:blur(3px);opacity:0;pointer-events:none;transition:opacity .15s;z-index:20}
+.scrim.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:10px;right:10px;bottom:10px;width:min(760px,calc(100% - 20px));background:var(--panel);z-index:21;transform:translateX(110%);transition:transform .22s;display:flex;flex-direction:column;border-radius:20px;box-shadow:0 30px 60px -20px rgba(30,20,90,.45);overflow:hidden}
+.drawer.on{transform:none}
+.drawer header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:22px 24px 18px;background:var(--hero);color:#fff}
+.drawer h3{margin:0;font-size:19px;font-weight:800}
+.drawer header p{margin:4px 0 0;color:rgba(255,255,255,.85);font-size:13px}
+.drawer .body{padding:20px 24px 30px;overflow:auto}
+.x{background:rgba(255,255,255,.2);border:0;width:32px;height:32px;cursor:pointer;font-size:18px;line-height:1;flex:none;border-radius:10px;color:#fff}
+.x:hover{background:rgba(255,255,255,.35)}
+dialog{border:0;border-radius:20px;padding:26px;max-width:560px;width:calc(100% - 32px);background:var(--panel);color:var(--ink);box-shadow:0 30px 60px -20px rgba(30,20,90,.45)}
+dialog::backdrop{background:rgba(22,18,60,.4);backdrop-filter:blur(3px)}
+dialog h3{margin:0 0 8px;font-size:20px;font-weight:800}
+dialog p,dialog li{font-size:13px;color:var(--muted);line-height:1.55}
+dialog code{font-size:12px;color:var(--primary);background:var(--tint);padding:1px 4px;border-radius:4px;line-height:1.9}
+dialog .acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+.msg{font-size:13px;margin-top:10px}
+.kv{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:20px}
+.kv>div{background:var(--bg);border-radius:12px;padding:10px 12px}
+.kv .k{font-size:12px;color:var(--muted)}.kv .v{font-size:17px;font-weight:800;margin-top:4px}
+footer.fn{margin:24px 0 40px;font-size:12px;color:var(--muted);padding-top:12px;line-height:1.6}
+.grid.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.tile{padding:18px 20px}
+.tile .big{font-size:28px;margin:4px 0 2px}
+.tile.warn{background:linear-gradient(var(--panel),var(--panel)) padding-box,linear-gradient(120deg,#FF8A3D,#F43F5E) border-box;border:1.5px solid transparent}
+.tile.warn .big{color:var(--warn)}
+.note{display:inline-block;margin-left:8px;padding:2px 10px;border-radius:999px;background:var(--tint);color:var(--primary);font-weight:600;font-size:12px}
+.ca{fill:var(--accent)}
+.legend i.ca{background:var(--accent)}
+.legend i.mk{width:2px;height:12px;background:var(--ink);border-radius:0;vertical-align:-2px}
+.legend i.ramp{width:56px;border-radius:3px}
+.legend i.ro{background:linear-gradient(90deg,rgba(109,74,255,.1),rgba(109,74,255,1))}
+.legend i.rp{background:linear-gradient(90deg,rgba(255,138,61,.1),rgba(255,138,61,1))}
+.legend i.sw.busy{background:var(--accent)}
+.chart .lane{fill:var(--bg)}
+.chart .gl{fill:#fff;font-size:11px;font-weight:700}
+.chart .gb rect.c2 + .gl,.chart .gb rect.cg + .gl,.chart .gb rect.ca + .gl{fill:var(--ink)}
+.chart .gb:hover rect{filter:brightness(1.08)}
+.chart .now{stroke:var(--neg);stroke-width:2}
+.chart .nowt{fill:var(--neg);font-weight:700}
+.chart .mk{stroke:var(--ink);stroke-width:2}
+.chart .zone{fill:none;stroke:var(--line);stroke-width:1.5;stroke-dasharray:4 4;rx:12px}
+.chart .zone.fast{fill:var(--tint);stroke:var(--soft)}
+.chart .zt{fill:var(--muted);font-size:11px;font-weight:600}
+.chart .bay.ho{fill:var(--primary)}.chart .bay.hf{fill:var(--neg)}.chart .bay.hp{fill:var(--warn)}
+.chart .bay:hover{stroke:var(--ink);stroke-width:1.5}
+.chart .dock{fill:var(--track)}
+.chart .dock.busy{fill:var(--accent)}
+.chart .dl{fill:var(--ink);font-weight:700}
+.chart .stage{fill:var(--bg);stroke:var(--line)}
+.chart .stagefill{fill:var(--soft);opacity:.6}
+.pill.vi{color:#5B3BFF;background:#EDE9FE}
+.pill.tl{color:#0E7490;background:#CFFAFE}
+:root[data-theme="dark"] .pill.vi{color:#C4B5FD;background:rgba(156,134,255,.18)}
+:root[data-theme="dark"] .pill.tl{color:#67E8F9;background:rgba(56,217,238,.15)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .pill.vi{color:#C4B5FD;background:rgba(156,134,255,.18)}:root:not([data-theme="light"]) .pill.tl{color:#67E8F9;background:rgba(56,217,238,.15)}}
+.riskrow{display:flex;justify-content:space-between;gap:12px;padding:12px 14px;background:var(--bg);border-radius:12px;margin-bottom:8px}
+.riskrow .s{font-size:12px;color:var(--muted);margin-top:2px}.riskrow .r{text-align:right}
+@media (max-width:1050px){.grid.g4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:700px){.grid.g4{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.tile .big{font-size:22px}.tile{padding:14px}}
+/* ---------- responsive ---------- */
+@media (max-width:1050px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.obs .cols{grid-template-columns:repeat(2,minmax(0,1fr))}.span2{grid-column:1/-1}}
+@media (max-width:700px){
+  .wrap{padding:0 16px}
+  .grid,.grid.g2{grid-template-columns:minmax(0,1fr);gap:14px}
+  .obs .cols{grid-template-columns:minmax(0,1fr)}
+  .sel{width:100%}.sel select{flex:1;min-width:0}
+  .pillars button{padding:7px 14px;font-size:14px}
+  .pillars,.subs{flex-wrap:wrap;row-gap:6px}
+  .ch{min-height:0}
+  .kv{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .tools input{max-width:none}
+  .card{padding:18px 16px 16px;border-radius:16px}
+}
+</style>
+</head>
+<body>
+<div class="hd">
+  <div class="wrap">
+    <div class="top">
+      <div>
+        <h1>Inventory <b>Review</b></h1>
+        <div class="meta" style="margin-top:8px"><button class="link" id="loadBtn" type="button">Load data</button></div>
+      </div>
+      <label class="sel">Warehouse <select id="wh" aria-label="Warehouse"></select></label>
+    </div>
+    <nav class="pillars" id="pillars" role="tablist" aria-label="Sections"></nav>
+    <nav class="subs" id="subs" role="tablist" aria-label="Views"></nav>
+  </div>
+</div>
+<main class="wrap" id="main"></main>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-hidden="true">
+  <header><div><h3 id="dTitle"></h3><p id="dSub"></p></div><button class="x" id="dClose" type="button" aria-label="Close">×</button></header>
+  <div class="body" id="dBody"></div>
+</aside>
+<div class="tip" id="tip"></div>
+
+<dialog id="loadDlg">
+  <h3>Load data</h3>
+  <p>Load a CSV with one row per item and warehouse. The file is read in your browser and nothing is uploaded or saved. Required columns:</p>
+  <p><code>sku, name, category, warehouse, unit_cost, unit_price, on_hand, reorder_point, avg_daily_demand, on_order, inbound_eta, age_days</code></p>
+  <p>Optional: <code>fill_rate</code> (0–1) and monthly history columns <code>rec_jan … rec_dec</code>, <code>iss_jan … iss_dec</code>, <code>wo_jan … wo_dec</code> (units), <code>wo_reason</code>. Without history, the Movements cards stay empty.</p>
+  <input type="file" id="file" accept=".csv,text/csv">
+  <div class="msg" id="loadMsg"></div>
+  <div class="acts">
+    <button class="btn" id="tplBtn" type="button">Download template</button>
+    <button class="btn" id="sampleBtn" type="button">Use sample data</button>
+    <button class="btn" id="blankBtn" type="button">Start blank</button>
+    <button class="btn pri" id="closeDlg" type="button" style="margin-left:auto">Close</button>
+  </div>
+</dialog>
+
+<script>
+(function(){
+'use strict';
+/* =========================================================
+   Settings
+   ========================================================= */
+const AS_OF = new Date(2026, 9, 31);           // data as of
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const TARGET_DOS = 35;                          // target days of supply
+const EXCESS_DOS = 120;                         // above this = excess stock
+const AGED_DAYS = 180;                          // older than this = aged stock
+const CARRY_RATE = 0.24;                        // annual carrying cost, share of value
+const KRI = {                                   // amber / red thresholds
+  stockout: [0.02, 0.05], belowRop: [0.10, 0.20], aged: [0.10, 0.20],
+  excess: [0.15, 0.25], fill: [0.97, 0.94], pastDue: [3, 8]
+};
+
+/* =========================================================
+   Sample data (fictional, generated)
+   ========================================================= */
+function makeSample(){
+  let seed = 20261031;
+  const r = () => (seed = (seed * 1664525 + 1013904223) % 4294967296) / 4294967296;
+  const between = (a, b) => a + (b - a) * r();
+  const pick = a => a[Math.floor(r() * a.length)];
+  const CATS = {
+    'Electronics': [[8, 60], ['Wireless earbuds','USB-C charger','Bluetooth speaker','Smart plug','Portable charger','HDMI cable','Webcam','Keyboard','Wireless mouse','Phone case']],
+    'Home & Kitchen': [[4, 40], ['Chef knife','Non-stick pan','Storage jar set','Electric kettle','Cutting board','Bath towel','Desk lamp','Cushion cover','Food container','Hand blender']],
+    'Apparel': [[3, 35], ['Crew socks','Running tee','Rain jacket','Denim jeans','Hoodie','Baseball cap','Leggings','Polo shirt','Wool scarf','Leather belt']],
+    'Health & Beauty': [[2, 15], ['Hand cream','Sunscreen SPF50','Shampoo','Toothbrush heads','Face wash','Lip balm','Vitamin C','Body lotion','Razor blades','Hair serum']],
+    'Sports & Outdoor': [[3, 30], ['Yoga mat','Water bottle','Resistance bands','Camping lantern','Dumbbell 5kg','Jump rope','Cycling gloves','Trekking poles','Dry bag','Foam roller']],
+    'Office': [[1, 12], ['A4 paper ream','Gel pens','Sticky notes','Stapler','Notebook','Desk organiser','Highlighters','Envelopes','Binder clips','Whiteboard markers']]
+  };
+  const WH = ['North Hub','South Hub','East Hub','West Hub'];
+  const REASONS = ['Damaged','Expired','Obsolete','Shrinkage'];
+  const season = [0.85,0.8,0.9,0.95,1,1,1.05,1.05,1,1.05,1.2,1.35];
+  const rows = []; let n = 1000;
+  Object.entries(CATS).forEach(([cat, [[lo, hi], names]]) => {
+    names.forEach(name => {
+      const whs = WH.filter(() => r() < 0.55); if (!whs.length) whs.push(pick(WH));
+      const cost = +between(lo, hi).toFixed(2);
+      const price = +(cost * between(1.6, 2.4)).toFixed(2);
+      whs.forEach(wh => {
+        n += 1;
+        const demand = +between(2, 38).toFixed(1);
+        const lead = Math.round(between(7, 21));
+        const rop = Math.round(demand * (lead + 5));
+        const roll = r();
+        const profile = roll < 0.06 ? 'out' : roll < 0.19 ? 'low' : roll < 0.28 ? 'excess' : 'ok';
+        const dos = profile === 'out' ? 0 : profile === 'low' ? between(2, lead) : profile === 'excess' ? between(125, 220) : between(Math.max(lead + 4, 18), 44);
+        const onHand = Math.round(demand * dos);
+        const needs = onHand < rop;
+        const onOrder = needs ? (r() < 0.72 ? Math.round(demand * between(25, 40)) : 0) : (r() < 0.28 ? Math.round(demand * between(20, 35)) : 0);
+        const eta = onOrder ? new Date(2026, 9, 18 + Math.round(between(0, 42))) : null;
+        const age = profile === 'excess' ? Math.round(between(150, 430)) : Math.round(between(12, 165));
+        const fill = profile === 'out' ? between(0.72, 0.86) : profile === 'low' ? between(0.88, 0.95) : between(0.96, 0.997);
+        const hist = { rec: [], iss: [], wo: [] };
+        for (let m = 0; m < 10; m++) {
+          const iss = Math.round(demand * 30 * season[m] * between(0.8, 1.2) * (profile === 'excess' ? 0.7 : 1));
+          const rec = Math.round(iss * between(0.85, profile === 'excess' ? 1.45 : 1.18));
+          const wo = Math.round(iss * (profile === 'excess' ? between(0, 0.05) : between(0, 0.015)));
+          hist.rec.push(rec); hist.iss.push(iss); hist.wo.push(wo);
+        }
+        rows.push({ sku: 'SKU-' + n, name, category: cat, warehouse: wh, cost, price, onHand, rop, demand, onOrder,
+          eta, age, fill, hist, woReason: pick(REASONS) });
+      });
+    });
+  });
+  return rows;
+}
+
+/* =========================================================
+   State
+   ========================================================= */
+let DATA = makeSample();
+let SOURCE = 'sample';
+const PILLARS = [
+  { id: 'stock', label: 'Stock', subs: [['overview','Overview'],['category','Category View'],['sku','Item View'],['moves','Movements']] },
+  { id: 'layout', label: 'Warehouse Layout', subs: [['floor','Floor Plan'],['slot','Slotting'],['cap','Capacity']] },
+  { id: 'inbound', label: 'Inbound', subs: [['dock','Dock Schedule'],['arr','Truck Arrivals'],['rec','Receiving']] },
+  { id: 'dispatch', label: 'Dispatch', subs: [['plan','Dispatch Plan'],['pipe','Order Pipeline'],['fleet','Fleet & Loads']] },
+  { id: 'cost', label: 'Cost' }
+];
+const S = { p: 'stock', s: 'overview', wh: 'all', basis: 'cost', q: '', cat: 'all', status: 'all', sort: ['value', -1] };
+try { const h = new URLSearchParams(location.hash.slice(1)); ['p','s','wh','basis'].forEach(k => { if (h.get(k)) S[k] = h.get(k); }); } catch (e) {}
+const saveHash = () => { try { history.replaceState(null, '', '#' + new URLSearchParams({ p: S.p, s: S.s, wh: S.wh, basis: S.basis })); } catch (e) {} };
+
+/* =========================================================
+   Helpers
+   ========================================================= */
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
+const sum = (a, f) => a.reduce((t, x) => t + (+f(x) || 0), 0);
+const ok = v => v != null && isFinite(v);
+const money = v => { if (!ok(v)) return '—'; const a = Math.abs(v); const s = a >= 1e6 ? (a / 1e6).toFixed(2) + 'M' : a >= 1e3 ? (a / 1e3).toFixed(a >= 1e5 ? 0 : 1) + 'K' : a.toFixed(0); return v < 0 ? '(' + '$' + s + ')' : '$' + s; };
+const num = v => ok(v) ? Math.round(v).toLocaleString('en-US') : '—';
+const pct = (v, d = 0) => ok(v) ? (v * 100).toFixed(d) + '%' : '—';
+const days = v => ok(v) ? Math.round(v) + ' days' : '—';
+const dt = d => d ? d.getDate() + ' ' + MONTHS[d.getMonth()] : '—';
+const signed = (v, f, badWhenPositive) => { if (!ok(v)) return '—'; const bad = badWhenPositive ? v > 0 : v < 0; const t = (v > 0 ? '+' : '') + f(v).replace(/^\((.*)\)$/, '−$1'); return bad ? '<span class="w">' + t + '</span>' : t; };
+const isoWeek = d => { const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); const day = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - day); const y = new Date(Date.UTC(t.getUTCFullYear(), 0, 1)); return Math.ceil(((t - y) / 864e5 + 1) / 7); };
+const uv = x => S.basis === 'retail' ? x.price : x.cost;               // unit value on chosen basis
+const val = x => x.onHand * uv(x);
+const status = x => x.onHand <= 0 ? 'Stockout' : x.onHand < x.rop ? 'Below reorder' : (x.demand > 0 && x.onHand / x.demand > EXCESS_DOS) ? 'Excess' : 'Healthy';
+const pillCls = { 'Stockout': 'rd', 'Below reorder': 'am', 'Excess': 'am', 'Healthy': 'ok' };
+const histMonths = () => { const m = DATA.find(x => x.hist); return m ? m.hist.iss.length : 0; };
+const rows = () => DATA.filter(x => S.wh === 'all' || x.warehouse === S.wh);
+const cats = rs => [...new Set(rs.map(x => x.category))].sort();
+
+function agg(rs){
+  const v = sum(rs, val), demV = sum(rs, x => x.demand * uv(x));
+  const target = demV * TARGET_DOS;
+  const short = rs.filter(x => x.onHand < x.rop);
+  const out = rs.filter(x => x.onHand <= 0);
+  const excessRows = rs.filter(x => status(x) === 'Excess');
+  const excessV = sum(excessRows, x => (x.onHand - x.demand * TARGET_DOS) * uv(x));
+  const agedV = sum(rs.filter(x => x.age > AGED_DAYS), val);
+  const ord = rs.filter(x => x.onOrder > 0);
+  const pastDue = ord.filter(x => x.eta && x.eta < AS_OF);
+  const hm = histMonths();
+  const iss = hm ? sum(rs, x => x.hist ? sum(x.hist.iss, y => y) * x.cost : 0) : null;
+  const rec = hm ? sum(rs, x => x.hist ? sum(x.hist.rec, y => y) * x.cost : 0) : null;
+  const wo = hm ? sum(rs, x => x.hist ? sum(x.hist.wo, y => y) * x.cost : 0) : null;
+  const costV = sum(rs, x => x.onHand * x.cost);
+  const turns = hm && costV ? (iss / hm * 12) / costV : null;
+  const fillW = sum(rs, x => x.demand), fill = fillW ? sum(rs, x => (ok(x.fill) ? x.fill : 1) * x.demand) / fillW : null;
+  return { n: rs.length, v, demV, target, dev: v - target, dos: demV ? v / demV : null,
+    short, out, shortV: sum(short, x => (x.rop - x.onHand) * uv(x)),
+    shortCovV: sum(short, x => Math.min(x.onOrder, x.rop - x.onHand) * uv(x)),
+    lostDay: sum(out, x => x.demand * x.price),
+    excessRows, excessV, agedV, ord, ordV: sum(ord, x => x.onOrder * uv(x)), pastDue,
+    iss, rec, wo, turns, fill };
+}
+
+/* =========================================================
+   Charts (plain SVG)
+   ========================================================= */
+const tip = $('tip');
+function showTip(e, html){ tip.innerHTML = html; tip.style.opacity = 1; const x = Math.min(e.clientX + 14, innerWidth - 250); tip.style.left = x + 'px'; tip.style.top = (e.clientY + 14) + 'px'; }
+document.addEventListener('mousemove', e => { const t = e.target.closest && e.target.closest('[data-tip]'); if (t) showTip(e, t.getAttribute('data-tip')); else tip.style.opacity = 0; });
+
+/* vertical bars; series: [{key, cls, fmt}], cats: [{label, [key]:value, cls?}] */
+function vbars(el, data, series, o = {}){
+  const W = Math.max(el.clientWidth, 240), H = o.h || 150, pad = { t: 18, b: 22 };
+  if (!data.length) { el.innerHTML = '<div class="empty">No data</div>'; return; }
+  const max = Math.max(1, ...data.flatMap(d => series.map(s => Math.abs(d[s.key] || 0))), o.target || 0) * 1.08;
+  const gw = W / data.length, inner = Math.min(gw * (series.length > 1 ? 0.72 : 0.62), series.length * 46), bw = inner / series.length;
+  const y = v => pad.t + (H - pad.t - pad.b) * (1 - Math.abs(v) / max);
+  let g = '';
+  data.forEach((d, i) => {
+    const x0 = i * gw + (gw - inner) / 2;
+    series.forEach((s, j) => {
+      const v = d[s.key] || 0, yy = y(v), x = x0 + j * bw, h = Math.max(0, H - pad.b - yy);
+      const cls = (d.cls && d.cls[s.key]) || s.cls;
+      g += `<rect class="${cls}" x="${x + 1}" y="${yy}" width="${Math.max(1, bw - 2)}" height="${h}" data-tip="${esc(d.label)} · ${esc(s.name || '')} ${esc(s.fmt(v))}"></rect>`;
+      if (!o.noLabels && (series.length === 1 || bw >= 46)) g += `<text class="vl${cls === 'cw' ? ' w' : ''}" x="${x + bw / 2}" y="${yy - 5}" text-anchor="middle">${esc(s.fmt(v))}</text>`;
+    });
+    g += `<text x="${i * gw + gw / 2}" y="${H - 6}" text-anchor="middle">${esc(d.label)}</text>`;
+  });
+  if (o.target) g += `<line class="tgt" x1="0" x2="${W}" y1="${y(o.target)}" y2="${y(o.target)}"></line>`;
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" height="${H}" role="img" aria-label="${esc(o.aria || 'Bar chart')}"><line class="axis" x1="0" x2="${W}" y1="${H - pad.b}" y2="${H - pad.b}"></line>${g}</svg>`;
+}
+/* horizontal bars with optional target tick per row */
+function hbars(el, data, o = {}){
+  if (!data.length) { el.innerHTML = '<div class="empty">No data</div>'; return; }
+  const W = Math.max(el.clientWidth, 240), lw = Math.min(150, W * 0.36), rh = 26, H = data.length * rh + 4, vw = 62;
+  const max = Math.max(1, ...data.map(d => Math.max(d.value || 0, d.target || 0))) * 1.02;
+  const x = v => lw + (W - lw - vw) * Math.max(0, v) / max;
+  let g = '';
+  data.forEach((d, i) => {
+    const yy = i * rh + 6;
+    g += `<text x="0" y="${yy + 11}">${esc(d.label)}</text><rect class="ct" x="${lw}" y="${yy + 2}" width="${W - lw - vw}" height="12"></rect>`;
+    g += `<rect class="${d.cls || 'c1'}" x="${lw}" y="${yy + 2}" width="${x(d.value) - lw}" height="12" data-tip="${esc(d.label)} · ${esc(o.fmt(d.value))}${d.target != null ? ' · target ' + esc(o.fmt(d.target)) : ''}"></rect>`;
+    if (d.target != null) g += `<line class="tgt" style="stroke-dasharray:none" x1="${x(d.target)}" x2="${x(d.target)}" y1="${yy - 1}" y2="${yy + 17}"></line>`;
+    g += `<text class="vl${d.cls === 'cw' ? ' w' : ''}" x="${W}" y="${yy + 12}" text-anchor="end">${esc(o.fmt(d.value))}</text>`;
+  });
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" height="${H}" role="img" aria-label="${esc(o.aria || 'Bar chart')}">${g}</svg>`;
+}
+/* bullet: on hand + on order against target */
+function bullet(el, a, b, target){
+  const W = Math.max(el.clientWidth, 200), H = 12, max = Math.max(a + b, target * 2, 1), x = v => W * v / max;
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H + 2}" height="${H + 2}" role="img" aria-label="On hand vs target"><rect class="ct" x="0" y="1" width="${W}" height="${H}"></rect>
+  <rect class="c1" x="0" y="1" width="${x(a)}" height="${H}" data-tip="On hand ${esc(money(a))}"></rect>
+  <rect class="c2" x="${x(a)}" y="1" width="${x(b)}" height="${H}" data-tip="On order ${esc(money(b))}"></rect>
+  <line style="stroke:var(--ink);stroke-width:2" x1="${x(target)}" x2="${x(target)}" y1="-2" y2="${H + 4}"></line></svg>`;
+}
+
+/* =========================================================
+   Cards
+   ========================================================= */
+const card = (id, title, q, body, o = {}) => `<section class="card${o.tbc ? ' tbc' : ''}${o.cls ? ' ' + o.cls : ''}" id="${id}">
+  <div class="ch"><div><h3>${title}</h3><p>${q}</p></div>${o.tbc || o.noPlus ? '' : `<button class="plus" type="button" data-detail="${id}" aria-label="Details for ${esc(title)}">+</button>`}</div>${body}</section>`;
+const DRAW = [];
+const later = fn => DRAW.push(fn);
+const legend = items => `<div class="legend">${items.map(([c, t]) => `<span><i class="${c}"></i>${t}</span>`).join('')}</div>`;
+
+/* ---------- Stock · Overview ---------- */
+function pageOverview(){
+  const rs = rows(), A = agg(rs), hm = histMonths();
+  const byCat = cats(rs).map(c => { const g = rs.filter(x => x.category === c); const a = agg(g); return { c, ...a, oo: a.ordV }; }).sort((a, b) => b.dev - a.dev);
+  const top3 = byCat.slice(0, 3);
+  const bulletRow = (lab, a, i) => `<div class="bullet"><div class="row"><span>${esc(lab)}</span><b>${money(a.v)}</b></div><div class="chart" id="bl${i}"></div><div class="note">Target ${money(a.target)} · Deviation ${signed(a.dev, money, true)}</div></div>`;
+  [A, ...top3].forEach((a, i) => later(() => $('bl' + i) && bullet($('bl' + i), a.v, a.ordV || a.oo || 0, a.target)));
+
+  const c1 = `<div class="lab">Inventory on hand · ${S.basis === 'retail' ? 'at retail' : 'at cost'}</div><div class="big">${A.n ? money(A.v) : '—'}</div>
+    <div class="sub">Target ${A.n ? money(A.target) : '—'} | Deviation ${signed(A.n ? A.dev : NaN, money, true)}<br>Days of supply ${A.n ? Math.round(A.dos) : '—'} | Target ${TARGET_DOS}</div><div class="spacer"></div>${A.n ? legend([['c1', 'On hand'], ['c2', 'On order'], ['ln', 'Target']]).replace('<div class="legend">', '<div class="legend" style="margin-bottom:12px">') : ''}
+    ${A.n ? bulletRow('Total', A, 0) + top3.map((a, i) => bulletRow(a.c, a, i + 1)).join('') : '<div class="empty">No items loaded</div>'}`;
+
+  const sh = A.short.slice().sort((a, b) => (b.rop - b.onHand) * uv(b) - (a.rop - a.onHand) * uv(a));
+  const c2 = `<div class="lab">Shortfall to reorder point</div><div class="big">${A.n ? money(A.shortV) : '—'}</div>
+    <div class="sub">${A.short.length} items below reorder point · ${A.out.length} out of stock</div><div class="spacer"></div>
+    <div class="quad">
+      <div><div class="v">${A.n ? A.out.length : '—'}</div><div class="k">Out of stock</div><div class="s">${A.n ? pct(A.out.length / A.n, 1) + ' of items' : '—'}</div></div>
+      <div><div class="v">${A.n ? money(A.lostDay) : '—'}</div><div class="k">Sales at risk a day</div><div class="s">Demand of items at zero, at retail</div></div>
+      <div><div class="v">${A.n ? money(A.shortCovV) : '—'}</div><div class="k">Covered by open orders</div><div class="s">${A.shortV ? pct(A.shortCovV / A.shortV) + ' of shortfall' : '—'}</div></div>
+      <div><div class="v">${A.n ? money(A.shortV - A.shortCovV) : '—'}</div><div class="k">Not yet ordered</div><div class="s">${A.shortV ? pct(1 - A.shortCovV / A.shortV) + ' of shortfall' : '—'}</div></div>
+    </div>
+    <div class="foot">${sh.length ? 'Largest: ' + sh.slice(0, 2).map(x => esc(x.name) + ' (' + esc(x.warehouse) + ')').join(' · ') : 'No shortfalls'}</div>`;
+
+  const wk = isoWeek(AS_OF), buckets = [{ label: 'Past due', v: 0, cls: { v: 'cw' } }];
+  for (let i = 1; i <= 4; i++) buckets.push({ label: 'W' + (wk + i - 1), v: 0 });
+  buckets.push({ label: 'Later', v: 0 });
+  A.ord.forEach(x => { const vv = x.onOrder * uv(x); if (!x.eta) return buckets[5].v += vv; if (x.eta < AS_OF) return buckets[0].v += vv; const w = isoWeek(x.eta) - wk; buckets[w >= 0 && w < 4 ? w + 1 : 5].v += vv; });
+  later(() => $('inb') && vbars($('inb'), A.n ? buckets : [], [{ key: 'v', cls: 'c1', fmt: money, name: 'Inbound' }], { h: 150, aria: 'Inbound value by expected week' }));
+  const onTime = A.ord.length ? 1 - A.pastDue.length / A.ord.length : null;
+  const c3 = `<div class="lab">Open purchase orders</div><div class="big">${A.n ? money(A.ordV) : '—'}</div>
+    <div class="sub">Covers ${A.demV ? Math.round(A.ordV / A.demV) : '—'} days of demand | ${A.ord.length} lines open</div><div class="spacer"></div>
+    <div class="lab">Inbound by Expected Week</div><div class="chart" id="inb"></div>
+    <div class="foot">${A.ord.length ? pct(onTime) + ' of open lines on time · ' + A.pastDue.length + ' past due' : 'No open orders'}</div>`;
+
+  const mv = cats(rs).map(c => { const g = rs.filter(x => x.category === c); return { label: c.split(' ')[0], rec: sum(g, x => x.hist ? sum(x.hist.rec, y => y) * x.cost : 0), iss: sum(g, x => x.hist ? sum(x.hist.iss, y => y) * x.cost : 0) }; }).sort((a, b) => b.iss - a.iss).slice(0, 3);
+  const mvData = hm ? [{ label: 'Total', rec: A.rec, iss: A.iss }, ...mv] : [];
+  later(() => $('mvc') && vbars($('mvc'), mvData, [{ key: 'rec', cls: 'c1', fmt: money, name: 'Receipts' }, { key: 'iss', cls: 'cw', fmt: v => money(-v), name: 'Issues' }], { h: 150, aria: 'Receipts and issues' }));
+  const woRs = {}; rs.forEach(x => { if (x.hist) woRs[x.woReason || 'Unspecified'] = (woRs[x.woReason || 'Unspecified'] || 0) + sum(x.hist.wo, y => y) * x.cost; });
+  const topWo = Object.entries(woRs).sort((a, b) => b[1] - a[1])[0];
+  const c4 = `<div class="lab">Net movement · Jan–${hm ? MONTHS[hm - 1] : '…'} · at cost</div><div class="big">${hm && A.n ? money(A.rec - A.iss) : '—'}</div>
+    <div class="sub">Issues <span class="w">${hm && A.n ? money(-A.iss) : '—'}</span> | Receipts ${hm && A.n ? money(A.rec) : '—'}</div><div class="spacer"></div>
+    <div class="lab">Receipts and Issues · Jan–${hm ? MONTHS[hm - 1] : '…'}</div>${legend([['c1', 'Receipts'], ['cw', 'Issues']])}<div class="chart" id="mvc"></div>
+    <div class="foot">${hm && A.n ? 'Write-offs ' + money(A.wo) + (topWo ? ' · largest reason ' + esc(topWo[0]).toLowerCase() : '') : 'No movement history loaded'}</div>`;
+
+  const c5 = `<div class="lab">Initiatives on Plan</div><div class="big">—</div><div class="sub">To be confirmed</div><div class="spacer"></div>
+    <div class="tbcrows"><div>Initiative</div><div>Target</div><div>Committed</div><div>Realised to date</div><div>Status and countermeasure</div></div>
+    <div class="foot">Filled once the improvement initiatives and their targets are confirmed.</div>`;
+
+  /* key observations */
+  const worst = byCat[0], oldest = rs.filter(x => x.age > AGED_DAYS).sort((a, b) => val(b) - val(a))[0];
+  const obs = A.n ? [
+    ['Position', `Stock is ${money(A.v)}, ${A.dev >= 0 ? money(A.dev) + ' above' : money(-A.dev) + ' below'} the ${TARGET_DOS}-day target, with ${Math.round(A.dos)} days of supply.`, 'Inventory against target, and the change since last month'],
+    ['Drivers', worst ? `${esc(worst.c)} is furthest over target (${signed(worst.dev, money, true)}); ${A.excessRows.length} items hold ${money(A.excessV)} beyond target cover.` : '—', 'Largest overstock, receipts ahead of demand, and slipped orders'],
+    ['Principal Risk', A.out.length ? `${A.out.length} items are out of stock, putting ${money(A.lostDay)} of sales at risk a day; ${A.pastDue.length} order lines are past due.` : 'No items out of stock.', 'The largest threat to service levels, and the countermeasure in place'],
+    ['Principal Opportunity', `${money(A.agedV)} is older than ${AGED_DAYS} days${oldest ? ', led by ' + esc(oldest.name) + ' (' + esc(oldest.warehouse) + ')' : ''}: a clearance or transfer candidate.`, 'Where working capital can be released before year end'],
+    ['Support Requested', '<span class="dash"></span>', 'Decisions or senior involvement required from management']
+  ] : [['Position'],['Drivers'],['Principal Risk'],['Principal Opportunity'],['Support Requested']].map(([t]) => [t, '<span class="dash"></span>', 'Shown once data is loaded']);
+  const obsHtml = `<section class="card obs"><div class="ch" style="min-height:0"><div><h3>Key Observations</h3><p>What should management take away in one minute?</p></div></div>
+    <div class="cols">${obs.map((o, i) => `<div><h4><span>${i + 1}</span> · ${o[0]}</h4><div class="t">${o[1]}</div><div class="d">${o[2]}</div></div>`).join('')}</div></section>`;
+
+  return bar(true) + `<div class="grid">
+    ${card('cStock', 'Stock vs Target', 'Where do we stand, and where will we land?', c1)}
+    ${card('cShort', 'Top Shortages', 'Which items will decide service levels this month?', c2)}
+    ${card('cInb', 'Replenishment Health', 'Is enough on order, and arriving in time?', c3)}
+    ${card('cMove', 'Movements and Write-offs', 'What is flowing in and out, and what are we losing?', c4)}
+    ${card('cInit', 'Improvement Initiatives', 'Which initiatives are to be delivered and achieved?', c5, { tbc: true })}
+  </div>` + obsHtml;
+}
+
+/* ---------- Stock · Category View ---------- */
+function pageCategory(){
+  const rs = rows(), A = agg(rs);
+  const list = cats(rs).map(c => ({ c, ...agg(rs.filter(x => x.category === c)) }));
+  const tr = (a, lab, tot) => `<tr class="${tot ? 'tot' : 'click'}" ${tot ? '' : `data-cat="${esc(lab)}"`}><td>${esc(lab)}</td><td>${a.n}</td>
+    <td><span class="minibar"><i class="${a.dev > 0 ? 'w' : ''}" style="width:${Math.min(100, a.v / Math.max(a.target, a.v, 1) * 100)}%"></i><em style="left:${Math.min(100, a.target / Math.max(a.target, a.v, 1) * 100)}%"></em></span>${money(a.v)}</td>
+    <td>${money(a.target)}</td><td>${signed(a.dev, money, true)}</td><td>${ok(a.dos) ? Math.round(a.dos) : '—'}</td><td>${ok(a.turns) ? a.turns.toFixed(1) + '×' : '—'}</td>
+    <td>${pct(a.fill, 1)}</td><td>${a.out.length ? '<span class="n">' + a.out.length + '</span>' : 0}</td><td>${a.short.length}</td><td>${money(a.excessV)}</td></tr>`;
+  const table = list.length ? `<div class="tw"><table><thead><tr><th>Category</th><th>Items</th><th>On hand</th><th>Target</th><th>Deviation</th><th>Days of supply</th><th>Turns</th><th>Fill rate</th><th>Stockouts</th><th>Below ROP</th><th>Excess value</th></tr></thead>
+    <tbody>${list.map(a => tr(a, a.c)).join('')}${tr(A, 'All categories', true)}</tbody></table></div>` : '<div class="empty">No items loaded</div>';
+  later(() => $('dosc') && hbars($('dosc'), list.map(a => ({ label: a.c, value: a.dos || 0, target: TARGET_DOS, cls: a.dos > TARGET_DOS * 1.25 ? 'cw' : 'c1' })), { fmt: v => Math.round(v) + 'd', aria: 'Days of supply by category' }));
+  const st = ['Healthy','Below reorder','Excess'];
+  later(() => $('stc') && hbars($('stc'), list.length ? st.map(s => ({ label: s, value: sum(rs.filter(x => status(x) === s), val), cls: s === 'Healthy' ? 'c1' : 'cw' })) : [], { fmt: money, aria: 'Value by stock status' }));
+  return crumb('Category View') + bar(true) + `<div class="grid">
+    ${card('cCat', 'Category Scorecard', 'Which categories are on target, and which are drifting? Click a row to see its items.', table, { cls: 'span3' })}
+    ${card('cDos', 'Days of Supply by Category', 'How long will current stock last at today’s demand?', legend([['c1', 'Within range'], ['cw', 'Over 125% of target'], ['ln', 'Target ' + TARGET_DOS + ' days']]) + '<div class="chart" id="dosc"></div>', { noPlus: true, cls: 'span2' })}
+    ${card('cSt', 'Stock by Status', 'How much value sits in each health state?', '<div class="chart" id="stc"></div><div class="foot">' + (A.n ? A.out.length + ' items out of stock hold no value' : 'No items loaded') + '</div>', { noPlus: true })}
+  </div>`;
+}
+
+/* ---------- Stock · Item View ---------- */
+const COLS = [
+  ['sku','SKU','l'],['name','Item','l'],['category','Category','l'],['warehouse','Warehouse','l'],['onHand','On hand'],['rop','Reorder pt'],['onOrder','On order'],['eta','ETA'],['dos','Days'],['value','Value'],['age','Age (d)'],['status','Status','l']
+];
+const cell = (x, k) => k === 'dos' ? (x.demand ? x.onHand / x.demand : 0) : k === 'value' ? val(x) : k === 'status' ? status(x) : k === 'eta' ? (x.eta ? +x.eta : 0) : x[k];
+function itemRows(){
+  const q = S.q.trim().toLowerCase();
+  let rs = rows().filter(x => (S.cat === 'all' || x.category === S.cat) && (S.status === 'all' || status(x) === S.status) && (!q || (x.sku + ' ' + x.name).toLowerCase().includes(q)));
+  const [k, d] = S.sort;
+  return rs.sort((a, b) => { const A = cell(a, k), B = cell(b, k); return (typeof A === 'string' ? A.localeCompare(B) : A - B) * d; });
+}
+function itemTable(){
+  const rs = itemRows(), show = rs.slice(0, 300);
+  return `<div class="tw"><table><thead><tr>${COLS.map(([k, t, c]) => `<th class="sort ${c || ''}" data-sort="${k}">${t}${S.sort[0] === k ? (S.sort[1] > 0 ? ' ↑' : ' ↓') : ''}</th>`).join('')}</tr></thead>
+  <tbody>${show.map((x, i) => `<tr class="click" data-item="${DATA.indexOf(x)}"><td>${esc(x.sku)}</td><td class="l">${esc(x.name)}</td><td class="l">${esc(x.category)}</td><td class="l">${esc(x.warehouse)}</td>
+  <td>${num(x.onHand)}</td><td>${num(x.rop)}</td><td>${x.onOrder ? num(x.onOrder) : '—'}</td><td>${x.eta ? (x.eta < AS_OF ? '<span class="w">' + dt(x.eta) + '</span>' : dt(x.eta)) : '—'}</td>
+  <td>${x.demand ? Math.round(x.onHand / x.demand) : '—'}</td><td>${money(val(x))}</td><td>${x.age > AGED_DAYS ? '<span class="w">' + num(x.age) + '</span>' : num(x.age)}</td><td class="l"><span class="pill ${pillCls[status(x)]}">${status(x)}</span></td></tr>`).join('') || `<tr><td colspan="12" class="empty" style="text-align:center">No items match</td></tr>`}</tbody></table></div>
+  <div class="foot">${rs.length} items${rs.length > 300 ? ' · first 300 shown, narrow the filters to see the rest' : ''} · value ${money(sum(rs, val))}</div>`;
+}
+function pageItems(){
+  const rs = rows();
+  const opts = ['all', ...cats(rs)].map(c => `<option value="${esc(c)}" ${S.cat === c ? 'selected' : ''}>${c === 'all' ? 'All categories' : esc(c)}</option>`).join('');
+  const chips = ['all','Stockout','Below reorder','Excess','Healthy'].map(s => `<button class="chip" type="button" data-status="${s}" aria-pressed="${S.status === s}">${s === 'all' ? 'All' : s}</button>`).join('');
+  return crumb('Item View') + bar(true) + `<div class="grid">${card('cItems', 'Item List', 'Which items need action, and why? Click an item for its detail.',
+    `<div class="tools"><input id="q" type="search" placeholder="Search SKU or item" value="${esc(S.q)}" aria-label="Search"><select id="catSel" aria-label="Category">${opts}</select>${chips}<button class="btn" id="exp" type="button" style="margin-left:auto">Export CSV</button></div><div id="itemT">${itemTable()}</div>`, { cls: 'span3', noPlus: true })}</div>`;
+}
+
+/* ---------- Stock · Movements ---------- */
+function pageMoves(){
+  const rs = rows(), hm = histMonths(), A = agg(rs);
+  const monthly = hm ? MONTHS.slice(0, hm).map((m, i) => ({ label: m, rec: sum(rs, x => x.hist ? x.hist.rec[i] * x.cost : 0), iss: sum(rs, x => x.hist ? x.hist.iss[i] * x.cost : 0), wo: sum(rs, x => x.hist ? x.hist.wo[i] * x.cost : 0) })) : [];
+  later(() => $('mmc') && vbars($('mmc'), monthly, [{ key: 'rec', cls: 'c1', fmt: money, name: 'Receipts' }, { key: 'iss', cls: 'cw', fmt: money, name: 'Issues' }], { h: 200, noLabels: innerWidth < 900, aria: 'Receipts and issues by month' }));
+  const reasons = {}; rs.forEach(x => { if (x.hist) reasons[x.woReason || 'Unspecified'] = (reasons[x.woReason || 'Unspecified'] || 0) + sum(x.hist.wo, y => y) * x.cost; });
+  later(() => $('woc') && hbars($('woc'), Object.entries(reasons).sort((a, b) => b[1] - a[1]).map(([k, v]) => ({ label: k, value: v, cls: 'cw' })), { fmt: money, aria: 'Write-offs by reason' }));
+  const iss = x => x.hist ? sum(x.hist.iss, y => y) * x.cost : 0;
+  const fast = rs.filter(x => x.hist).sort((a, b) => iss(b) - iss(a)).slice(0, 8);
+  const slow = rs.filter(x => x.onHand > 0 && x.demand).sort((a, b) => b.onHand / b.demand - a.onHand / a.demand).slice(0, 8);
+  const mini = (list, f) => list.length ? `<div class="tw"><table><thead><tr><th>Item</th><th class="l">Warehouse</th><th>${f[0]}</th><th>${f[1]}</th></tr></thead><tbody>${list.map(x => `<tr class="click" data-item="${DATA.indexOf(x)}"><td>${esc(x.name)}</td><td class="l">${esc(x.warehouse)}</td><td>${f[2](x)}</td><td>${f[3](x)}</td></tr>`).join('')}</tbody></table></div>` : '<div class="empty">No data</div>';
+  return crumb('Movements') + bar(false) + `<div class="grid">
+    ${card('cMon', 'Receipts and Issues by Month', 'Are we buying ahead of, or behind, demand? At cost.', `<div class="sub">YTD receipts <b>${hm ? money(A.rec) : '—'}</b> · issues <b>${hm ? money(A.iss) : '—'}</b> · turns <b>${ok(A.turns) ? A.turns.toFixed(1) + '×' : '—'}</b></div>${legend([['c1', 'Receipts'], ['cw', 'Issues']])}<div class="chart" id="mmc"></div>`, { cls: 'span2' })}
+    ${card('cWo', 'Write-offs by Reason', 'What are we losing, and why? Year to date, at cost.', `<div class="big">${hm ? money(A.wo) : '—'}</div><div class="sub">${hm && A.iss ? pct(A.wo / A.iss, 2) + ' of issues' : '—'}</div><div class="spacer"></div><div class="chart" id="woc"></div>`, { noPlus: true })}
+    ${card('cFast', 'Fastest Movers', 'Which items carry the volume? Issues year to date.', mini(fast, ['Issues YTD', 'Days of supply', x => money(iss(x)), x => Math.round(x.onHand / x.demand)]), { noPlus: true, cls: 'span2' })}
+    ${card('cSlow', 'Slowest Movers', 'Where is cash sitting idle?', mini(slow, ['Days of supply', 'Value', x => num(x.onHand / x.demand), x => money(val(x))]), { noPlus: true })}
+  </div>`;
+}
+
+/* ---------- Cost ---------- */
+function pageCost(){
+  const rs = rows(), A = agg(rs), hm = histMonths();
+  const costV = sum(rs, x => x.onHand * x.cost), carryM = costV * CARRY_RATE / 12;
+  const b = [['0–90 d', 0, 90], ['91–180 d', 91, 180], ['181–365 d', 181, 365], ['365+ d', 366, 1e9]].map(([l, a, z]) => ({ label: l, v: sum(rs.filter(x => x.age >= a && x.age <= z), val), cls: a > AGED_DAYS ? { v: 'cw' } : null }));
+  later(() => $('agec') && vbars($('agec'), A.n ? b : [], [{ key: 'v', cls: 'c1', fmt: money, name: 'Value' }], { h: 170, aria: 'Value by age' }));
+  const woM = hm ? MONTHS.slice(0, hm).map((m, i) => ({ label: m, v: sum(rs, x => x.hist ? x.hist.wo[i] * x.cost : 0) })) : [];
+  later(() => $('wom') && vbars($('wom'), woM, [{ key: 'v', cls: 'cw', fmt: money, name: 'Write-offs' }], { h: 170, noLabels: innerWidth < 900, aria: 'Write-offs by month' }));
+  const byCat = cats(rs).map(c => ({ label: c, value: sum(rs.filter(x => x.category === c), val) })).sort((a, b) => b.value - a.value);
+  later(() => $('vcat') && hbars($('vcat'), byCat, { fmt: money, aria: 'Value by category' }));
+  const byWh = [...new Set(rs.map(x => x.warehouse))].sort().map(w => ({ label: w, value: sum(rs.filter(x => x.warehouse === w), val) }));
+  later(() => $('vwh') && hbars($('vwh'), byWh, { fmt: money, aria: 'Value by warehouse' }));
+  return `<div class="bar"><span><b style="color:var(--ink);font-weight:600">Cost</b> · FY 2026 · as of ${dt(AS_OF)} ${AS_OF.getFullYear()}</span>${basisSeg()}</div><div class="grid">
+    ${card('cCarry', 'Carrying Cost', 'What does holding this stock cost us?', `<div class="lab">Per month · ${pct(CARRY_RATE)} a year of value at cost</div><div class="big">${A.n ? money(carryM) : '—'}</div><div class="sub">Annualised ${A.n ? money(carryM * 12) : '—'}<br>Of which on excess stock ${A.v ? money(carryM * A.excessV / A.v) : '—'}</div><div class="foot">Capital, storage, insurance and handling</div>`, { noPlus: true })}
+    ${card('cAge', 'Value by Age', 'How old is the stock we are paying to hold?', `<div class="chart" id="agec"></div><div class="foot">${A.v ? pct(A.agedV / A.v) + ' of value older than ' + AGED_DAYS + ' days' : '—'}</div>`, { noPlus: true })}
+    ${card('cWoM', 'Write-offs by Month', 'Is shrinkage and obsolescence under control? At cost.', `<div class="chart" id="wom"></div><div class="foot">${hm ? 'Year to date ' + money(A.wo) : 'No movement history loaded'}</div>`, { noPlus: true })}
+    ${card('cVcat', 'Value by Category', 'Where is working capital tied up?', '<div class="chart" id="vcat"></div>', { noPlus: true, cls: 'span2' })}
+    ${card('cVwh', 'Value by Warehouse', 'How is stock spread across locations?', '<div class="chart" id="vwh"></div>', { noPlus: true })}
+  </div>`;
+}
+
+/* =========================================================
+   Warehouse operations (layout, inbound docks, dispatch) — fictional, generated
+   ========================================================= */
+const NOW = 14 + 20 / 60;                                  // current time of day (14:20)
+const DAY_FROM = 6, DAY_TO = 22;                           // schedule window
+const AISLES = 12, BAYS = 16, LEVELS = 5;                  // racking per warehouse
+const ZONES = [                                            // aisle ranges, nearest dispatch last
+  { id: 'bulk', name: 'Bulk racking', from: 1, to: 4 },
+  { id: 'reserve', name: 'Reserve racking', from: 5, to: 8 },
+  { id: 'fast', name: 'Fast pick (golden zone)', from: 9, to: 12 }
+];
+const IN_DOORS = ['D1','D2','D3','D4','D5','D6'], OUT_DOORS = ['D7','D8','D9','D10','D11','D12'];
+const FILL_TARGET = 0.85, UTIL_TARGET = 0.85;
+const hhmm = h => { if (!ok(h)) return '—'; const m = Math.round(h * 60); return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); };
+const zoneOf = a => ZONES.find(z => a >= z.from && a <= z.to);
+const OPS = {};
+function makeOps(){
+  Object.keys(OPS).forEach(k => delete OPS[k]);
+  [...new Set(DATA.map(x => x.warehouse))].sort().forEach((wh, wi) => {
+    let seed = 777 + wi * 101;
+    const r = () => (seed = (seed * 1664525 + 1013904223) % 4294967296) / 4294967296;
+    const between = (a, b) => a + (b - a) * r();
+    const pick = a => a[Math.floor(r() * a.length)];
+    /* racking: occupancy + picks per bay */
+    const bays = [];
+    for (let a = 1; a <= AISLES; a++) {
+      const z = zoneOf(a); const base = z.id === 'bulk' ? 0.8 : z.id === 'reserve' ? 0.7 : 0.6;
+      for (let b = 1; b <= BAYS; b++) {
+        const occ = Math.max(0, Math.min(1, base + between(-0.3, 0.17)));
+        const used = Math.round(occ * LEVELS);
+        const picks = Math.round((z.id === 'fast' ? between(40, 160) : z.id === 'reserve' ? between(8, 60) : between(0, 22)) * (1 - Math.abs(b - 8) / 24));
+        bays.push({ aisle: a, bay: b, used, occ: used / LEVELS, picks, zone: z.id });
+      }
+    }
+    /* slot each item into an aisle; most fast movers land near dispatch, some do not */
+    const items = DATA.filter(x => x.warehouse === wh);
+    const ranked = items.slice().sort((p, q) => (q.hist ? sum(q.hist.iss, y => y) : q.demand) - (p.hist ? sum(p.hist.iss, y => y) : p.demand));
+    const slots = ranked.map((x, i) => {
+      const cls = i < ranked.length * 0.2 ? 'A' : i < ranked.length * 0.5 ? 'B' : 'C';
+      const misplaced = r() < 0.22;
+      const zone = cls === 'A' ? (misplaced ? pick(['reserve','bulk']) : 'fast') : cls === 'B' ? (misplaced ? pick(['fast','bulk']) : 'reserve') : (misplaced ? 'fast' : pick(['bulk','reserve']));
+      const Z = ZONES.find(z => z.id === zone); const aisle = Z.from + Math.floor(r() * (Z.to - Z.from + 1));
+      return { x, cls, zone, aisle, bay: 1 + Math.floor(r() * BAYS), picksDay: Math.round((x.hist ? x.hist.iss[x.hist.iss.length - 1] / 30 : x.demand) / between(2, 6)) };
+    });
+    /* floor stacking areas */
+    const floor = [
+      { name: 'Inbound staging', cap: 48, used: 0 }, { name: 'Dispatch staging', cap: 48, used: 0 }, { name: 'Returns & QC', cap: 24, used: Math.round(between(8, 20)) }
+    ];
+    /* weekly utilisation history (racking) */
+    const nowUtil = sum(bays, b => b.used) / (AISLES * BAYS * LEVELS);
+    const weeks = []; for (let w = 7; w >= 0; w--) weeks.push({ label: 'W' + (isoWeek(AS_OF) - w), v: Math.max(0.4, Math.min(0.99, nowUtil - w * between(0.004, 0.012) + between(-0.015, 0.015))) });
+    weeks[weeks.length - 1].v = nowUtil;
+    /* inbound trucks */
+    const SUPPLIERS = ['Apex Supplies','Brightline Goods','Coastal Traders','Delta Imports','Evergreen Wholesale','Fairway Distribution','Granite Brands','Harbour Freight Co.','Ironbridge Trading','Juniper Partners'];
+    const CARRIERS = ['FastLane Logistics','BlueRoute','Northstar Haulage','Metro Freight','TransAsia Lines'];
+    const inbound = []; const doorFree = {}; IN_DOORS.forEach(d => doorFree[d] = DAY_FROM);
+    const nIn = 24 + Math.floor(r() * 7);
+    for (let i = 0; i < nIn; i++) {
+      const slot = Math.round((DAY_FROM + 0.25 + (i / nIn) * (DAY_TO - DAY_FROM - 2.5) + between(-0.3, 0.3)) * 4) / 4;
+      const pallets = Math.round(between(6, 26));
+      const dur = Math.round((0.5 + pallets * 0.05) * 4) / 4;
+      const delay = r() < 0.28 ? Math.round(between(20, 80)) / 60 : Math.round(between(-10, 10)) / 60;
+      let start = slot + Math.max(0, delay);
+      const door = IN_DOORS.slice().sort((a, b) => doorFree[a] - doorFree[b])[0];
+      start = Math.max(start, doorFree[door]); const end = start + dur; doorFree[door] = end + 0.25;
+      const late = start - slot > 0.25;
+      const status = end <= NOW ? 'Completed' : start <= NOW ? 'Unloading' : late ? 'Delayed' : (slot - NOW < 0.75 ? 'At gate' : 'Due');
+      const received = status === 'Completed' ? pallets : status === 'Unloading' ? Math.round(pallets * (NOW - start) / dur) : 0;
+      inbound.push({ id: 'IN-' + (wi + 1) + String(i + 1).padStart(2, '0'), supplier: pick(SUPPLIERS), carrier: pick(CARRIERS), po: 'PO-' + Math.round(between(48000, 49999)),
+        slot, start, end, door, pallets, received, late, status, putaway: status === 'Completed' ? Math.round(pallets * Math.max(0, between(-0.3, 0.5) - (NOW - end) * 0.12)) : 0 });
+    }
+    floor[0].used = Math.min(floor[0].cap, sum(inbound, t => t.putaway) + sum(inbound.filter(t => t.status === 'Unloading'), t => t.received));
+    /* outbound trucks and routes */
+    const ROUTES = ['City Centre','North Loop','East Coast','West Industrial','Airport Cargo','South Retail Park','Harbourfront','University Belt','Hillside','Lakeside'];
+    const VEH = [{ type: 'Van 3.5t', cap: 6 }, { type: 'Rigid 12t', cap: 14 }, { type: 'Trailer 26-pallet', cap: 26 }];
+    const outbound = []; const oFree = {}; OUT_DOORS.forEach(d => oFree[d] = DAY_FROM);
+    const nOut = 18 + Math.floor(r() * 5);
+    for (let i = 0; i < nOut; i++) {
+      const dep = Math.round((DAY_FROM + 1.75 + (i / nOut) * (DAY_TO - DAY_FROM - 2.5) + between(-0.3, 0.3)) * 4) / 4;
+      const v = pick(VEH), fill = between(0.68, 1), pallets = Math.max(1, Math.round(v.cap * fill));
+      const loadDur = Math.round((0.5 + pallets * 0.04) * 4) / 4;
+      const door = OUT_DOORS.slice().sort((a, b) => oFree[a] - oFree[b])[0];
+      const loadStart = Math.max(dep - loadDur, oFree[door]); const plannedDep = dep; const actDep = loadStart + loadDur + (r() < 0.2 ? between(0.2, 0.7) : 0);
+      oFree[door] = actDep + 0.25;
+      const late = actDep - plannedDep > 0.25;
+      const status = actDep <= NOW ? 'Departed' : loadStart <= NOW ? 'Loading' : loadStart - NOW < 2.5 ? 'Picking' : 'Planned';
+      const orders = Math.round(pallets * between(2.5, 6));
+      const pickPct = status === 'Departed' || status === 'Loading' ? 1 : status === 'Picking' ? Math.max(0.1, Math.min(0.95, 1 - (loadStart - NOW) / 2.5 + between(-0.2, 0.1))) : 0;
+      outbound.push({ id: 'OUT-' + (wi + 1) + String(i + 1).padStart(2, '0'), route: ROUTES[i % ROUTES.length], vehicle: v.type, cap: v.cap, pallets, fill: pallets / v.cap, orders,
+        cutoff: plannedDep - 2, loadStart, loadEnd: loadStart + loadDur, dep: plannedDep, actDep, door, late, status, pickPct,
+        loaded: status === 'Departed' ? pallets : status === 'Loading' ? Math.round(pallets * Math.min(1, (NOW - loadStart) / loadDur)) : 0 });
+    }
+    floor[1].used = Math.min(floor[1].cap, Math.round(sum(outbound.filter(t => t.status === 'Picking' || t.status === 'Loading'), t => (t.pallets - t.loaded) * t.pickPct)));
+    /* pick waves */
+    const waves = [6, 8, 10, 12, 14, 16, 18].map((h, i) => { const lines = Math.round(between(380, 900)); const done = h + 2 <= NOW ? 1 : h <= NOW ? (NOW - h) / 2 : 0;
+      return { wave: 'Wave ' + (i + 1), release: h, lines, orders: Math.round(lines / between(3, 5)), picked: Math.round(lines * done * (done < 1 ? between(0.85, 1) : 1)), pickers: Math.round(between(6, 14)), status: done >= 1 ? 'Complete' : done > 0 ? 'In progress' : 'Not released' }; });
+    /* hourly receiving */
+    const recHour = []; for (let h = DAY_FROM; h < Math.ceil(NOW); h++) recHour.push({ label: hhmm(h).slice(0, 2), v: Math.round(sum(inbound, t => { const a = Math.max(h, t.start), b = Math.min(h + 1, t.end, NOW); return b > a ? t.pallets * (b - a) / (t.end - t.start) : 0; })) });
+    OPS[wh] = { bays, slots, floor, weeks, inbound, outbound, waves, recHour };
+  });
+}
+makeOps(); makeOps.data = DATA;
+const allWh = () => Object.keys(OPS);
+const opsWh = () => S.wh !== 'all' && OPS[S.wh] ? S.wh : allWh()[0];
+const opsNote = () => S.wh === 'all' && allWh().length ? `<span class="note">Showing ${esc(opsWh())}. Choose a warehouse above to switch.</span>` : '';
+const opsBar = (title, extra = '') => `<div class="bar"><span>Today · Sat ${dt(AS_OF)} · ${hhmm(NOW)}${S.wh !== 'all' ? ' · ' + esc(S.wh) : ''} ${opsNote()}</span>${extra}</div>`;
+const tile = (lab, v, sub, cls = '') => `<section class="card tile ${cls}"><div class="lab">${lab}</div><div class="big">${v}</div><div class="sub">${sub}</div></section>`;
+const stPill = s => `<span class="pill ${({ Completed: 'gr', Departed: 'gr', Unloading: 'vi', Loading: 'vi', 'At gate': 'tl', Due: 'tl', Picking: 'tl', Planned: 'gr', Delayed: 'am', Complete: 'ok', 'In progress': 'vi', 'Not released': 'gr' })[s] || 'gr'}">${s}</span>`;
+
+/* ---------- Gantt timeline ---------- */
+function gantt(el, rows, items, o = {}){
+  const W = Math.max(el.clientWidth, 720), lw = 46, rh = 34, top = 24, H = top + rows.length * rh + 6;
+  const x = h => lw + (W - lw - 8) * (h - DAY_FROM) / (DAY_TO - DAY_FROM);
+  let g = '';
+  for (let h = DAY_FROM; h <= DAY_TO; h += 2) g += `<line class="axis" x1="${x(h)}" x2="${x(h)}" y1="${top - 4}" y2="${H}"></line>` + (Math.abs(h - NOW) < 0.75 ? '' : `<text x="${x(h)}" y="12" text-anchor="${h === DAY_TO ? 'end' : h === DAY_FROM ? 'start' : 'middle'}">${hhmm(h)}</text>`);
+  rows.forEach((r, i) => { const y = top + i * rh; g += `<rect class="lane" x="${lw}" y="${y + 3}" width="${W - lw - 8}" height="${rh - 6}"></rect><text x="0" y="${y + rh / 2 + 4}" class="vl">${esc(r)}</text>`; });
+  items.forEach(it => { const i = rows.indexOf(it.row); if (i < 0) return; const y = top + i * rh, x1 = x(Math.max(DAY_FROM, it.start)), x2 = x(Math.min(DAY_TO, it.end)), w = Math.max(3, x2 - x1);
+    g += `<g class="gb" data-tip="${esc(it.tip)}"><rect class="${it.cls}" x="${x1}" y="${y + 6}" width="${w}" height="${rh - 12}"></rect>${w > 70 ? `<text class="gl" x="${x1 + 7}" y="${y + rh / 2 + 4}">${esc(it.label)}</text>` : ''}</g>`;
+    if (ok(it.mark)) g += `<line class="mk" x1="${x(it.mark)}" x2="${x(it.mark)}" y1="${y + 3}" y2="${y + rh - 3}"></line>`; });
+  g += `<line class="now" x1="${x(NOW)}" x2="${x(NOW)}" y1="${top - 6}" y2="${H}"></line><text class="nowt" x="${x(NOW)}" y="12" text-anchor="middle">Now ${hhmm(NOW)}</text>`;
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" height="${H}" style="min-width:${W}px" role="img" aria-label="${esc(o.aria || 'Schedule')}">${g}</svg>`;
+}
+
+/* ---------- Floor plan ---------- */
+function floorPlan(el, O, mode){
+  const W = Math.max(el.clientWidth, 760), dockW = 54, stageW = 70, gap = 10;
+  const rackX0 = dockW + stageW + gap * 2, rackX1 = W - dockW - stageW - gap * 2;
+  const aw = (rackX1 - rackX0) / AISLES, cellW = aw * 0.62, ch = 15, top = 34, H = top + BAYS * ch + 64;
+  const maxP = Math.max(1, ...O.bays.map(b => b.picks));
+  let g = '';
+  ZONES.forEach(z => { const xa = rackX0 + (z.from - 1) * aw, xb = rackX0 + z.to * aw;
+    g += `<rect class="zone ${z.id}" x="${xa + 2}" y="${top - 26}" width="${xb - xa - 4}" height="${BAYS * ch + 34}"></rect><text class="zt" x="${(xa + xb) / 2}" y="${top - 12}" text-anchor="middle">${esc(z.name)}</text>`; });
+  O.bays.forEach(b => { const x = rackX0 + (b.aisle - 1) * aw + (aw - cellW) / 2, y = top + (b.bay - 1) * ch;
+    const v = mode === 'picks' ? b.picks / maxP : b.occ; const over = mode !== 'picks' && b.occ >= 1;
+    g += `<rect class="bay ${mode === 'picks' ? 'hp' : over ? 'hf' : 'ho'}" style="fill-opacity:${over ? 1 : 0.1 + 0.9 * v}" x="${x}" y="${y + 1}" width="${cellW}" height="${ch - 2}" data-tip="Aisle A${String(b.aisle).padStart(2, '0')} · Bay ${b.bay}<br>${b.used} of ${LEVELS} levels used (${pct(b.occ)})<br>${b.picks} picks today"></rect>`; });
+  for (let a = 1; a <= AISLES; a++) g += `<text x="${rackX0 + (a - 0.5) * aw}" y="${top + BAYS * ch + 14}" text-anchor="middle" class="vl">A${String(a).padStart(2, '0')}</text>`;
+  const dockCol = (x, doors, cls, label) => { const dh = (BAYS * ch) / doors.length; let s = `<text class="zt" x="${x + dockW / 2}" y="${top - 12}" text-anchor="middle">${label}</text>`;
+    doors.forEach((d, i) => { s += `<rect class="dock ${cls}" x="${x}" y="${top + i * dh + 2}" width="${dockW}" height="${dh - 4}" data-tip="Door ${d}"></rect><text x="${x + dockW / 2}" y="${top + i * dh + dh / 2 + 4}" text-anchor="middle" class="dl">${d}</text>`; }); return s; };
+  const busyIn = new Set(O.inbound.filter(t => t.status === 'Unloading').map(t => t.door)), busyOut = new Set(O.outbound.filter(t => t.status === 'Loading').map(t => t.door));
+  g += dockCol(0, IN_DOORS, 'in', 'Receiving').replace(/class="dock in" x="0" y="([\d.]+)" width="[\d.]+" height="[\d.]+" data-tip="Door (D\d+)"/g, (m, y, d) => busyIn.has(d) ? m.replace('dock in', 'dock in busy').replace(`Door ${d}`, `Door ${d} · unloading`) : m);
+  g += dockCol(W - dockW, OUT_DOORS, 'out', 'Dispatch').replace(/class="dock out" x="[\d.]+" y="[\d.]+" width="[\d.]+" height="[\d.]+" data-tip="Door (D\d+)"/g, (m, d) => busyOut.has(d) ? m.replace('dock out', 'dock out busy').replace(`Door ${d}`, `Door ${d} · loading`) : m);
+  const stage = (x, f) => `<rect class="stage" x="${x}" y="${top}" width="${stageW}" height="${BAYS * ch}" data-tip="${esc(f.name)} · ${f.used} of ${f.cap} floor spots"></rect>
+    <rect class="stagefill" x="${x}" y="${top + BAYS * ch * (1 - f.used / f.cap)}" width="${stageW}" height="${BAYS * ch * f.used / f.cap}"></rect>
+    <text class="zt" x="${x + stageW / 2}" y="${top + BAYS * ch / 2 - 4}" text-anchor="middle">${f.name.split(' ')[0]}</text><text class="zt" x="${x + stageW / 2}" y="${top + BAYS * ch / 2 + 10}" text-anchor="middle">staging</text><text class="vl" x="${x + stageW / 2}" y="${top + BAYS * ch / 2 + 28}" text-anchor="middle">${f.used}/${f.cap}</text>`;
+  g += stage(dockW + gap, O.floor[0]) + stage(W - dockW - gap - stageW, O.floor[1]);
+  const by = top + BAYS * ch + 26;
+  g += `<rect class="stage" x="${dockW + gap}" y="${by}" width="${stageW + 140}" height="28" data-tip="Returns & QC · ${O.floor[2].used} of ${O.floor[2].cap} spots"></rect><text class="zt" x="${dockW + gap + 10}" y="${by + 18}">Returns &amp; QC · ${O.floor[2].used}/${O.floor[2].cap}</text>`;
+  g += `<rect class="stage" x="${W - dockW - gap - stageW - 160}" y="${by}" width="${stageW + 160}" height="28"></rect><text class="zt" x="${W - dockW - gap - stageW - 150}" y="${by + 18}">Packing benches · 8 stations</text>`;
+  g += `<text class="zt" x="${(rackX0 + rackX1) / 2}" y="${by + 18}" text-anchor="middle">← inbound flow · · · outbound flow →</text>`;
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" height="${H}" style="min-width:${W}px" role="img" aria-label="Warehouse floor plan">${g}</svg>`;
+}
+
+/* ---------- Layout pages ---------- */
+function pageFloor(){
+  const wh = opsWh(), O = OPS[wh]; if (!O) return opsBar() + '<div class="empty">No warehouses loaded</div>';
+  const used = sum(O.bays, b => b.used), cap = AISLES * BAYS * LEVELS, full = O.bays.filter(b => b.occ >= 1).length;
+  const byA = []; for (let a = 1; a <= AISLES; a++) { const bs = O.bays.filter(b => b.aisle === a); byA.push({ a, occ: sum(bs, b => b.used) / (BAYS * LEVELS), picks: sum(bs, b => b.picks) }); }
+  const fullest = byA.slice().sort((p, q) => q.occ - p.occ)[0], busiest = byA.slice().sort((p, q) => q.picks - p.picks)[0];
+  S.fmode = S.fmode || 'occ';
+  later(() => $('fp') && floorPlan($('fp'), O, S.fmode));
+  const seg = `<div class="seg"><span>Colour by</span><button type="button" data-fmode="occ" aria-pressed="${S.fmode === 'occ'}">Occupancy</button><button type="button" data-fmode="picks" aria-pressed="${S.fmode === 'picks'}">Pick activity</button></div>`;
+  const lg = S.fmode === 'picks' ? `<div class="legend"><span><i class="ramp rp"></i>Fewer → more picks today</span><span><i class="cn"></i>—</span></div>`.replace('<span><i class="cn"></i>—</span>', '') : `<div class="legend"><span><i class="ramp ro"></i>Empty → full bay</span><span><i class="cn"></i>Bay full (no free level)</span><span><i class="sw busy"></i>Door in use</span></div>`;
+  return crumb('Layout', 'Floor Plan') + opsBar('', seg) + `<div class="grid g4">
+    ${tile('Pallet positions used', num(used), `of ${num(cap)} · ${pct(used / cap)} utilised`)}
+    ${tile('Free positions', num(cap - used), `${full} bays completely full`)}
+    ${tile('Fullest aisle', 'A' + String(fullest.a).padStart(2, '0'), `${pct(fullest.occ)} occupied`)}
+    ${tile('Busiest aisle', 'A' + String(busiest.a).padStart(2, '0'), `${num(busiest.picks)} picks today`)}
+  </div><div class="grid" style="margin-top:20px">${card('cFloor', 'Floor Plan · ' + esc(wh), 'Where is space free, and where is the work happening? Hover a bay for detail.', lg + '<div class="tw"><div class="chart" id="fp"></div></div>', { cls: 'span3', noPlus: true })}</div>`;
+}
+function pageSlotting(){
+  const wh = opsWh(), O = OPS[wh]; if (!O) return opsBar() + '<div class="empty">No warehouses loaded</div>';
+  const A = O.slots.filter(s => s.cls === 'A'), inGold = A.filter(s => s.zone === 'fast');
+  const cand = O.slots.filter(s => (s.cls === 'A' && s.zone !== 'fast') || (s.cls === 'C' && s.zone === 'fast')).sort((p, q) => q.picksDay - p.picksDay);
+  const byA = []; for (let a = 1; a <= AISLES; a++) byA.push({ label: 'A' + String(a).padStart(2, '0'), v: sum(O.bays.filter(b => b.aisle === a), b => b.picks), cls: zoneOf(a).id === 'fast' ? null : { v: 'c2' } });
+  later(() => $('pba') && vbars($('pba'), byA, [{ key: 'v', cls: 'c1', fmt: num, name: 'Picks' }], { h: 190, noLabels: innerWidth < 900, aria: 'Picks by aisle' }));
+  const mix = ['A','B','C'].map(c => ({ label: c + ' items', value: O.slots.filter(s => s.cls === c && s.zone === 'fast').length, cls: c === 'A' ? 'c1' : c === 'B' ? 'c2' : 'cw' }));
+  later(() => $('gmix') && hbars($('gmix'), mix, { fmt: v => num(v) + ' items', aria: 'Golden zone mix' }));
+  const walk = sum(cand.filter(s => s.cls === 'A'), s => s.picksDay * (12 - s.aisle) * 2 * 3.2);
+  const t = cand.length ? `<div class="tw"><table><thead><tr><th>Item</th><th class="l">Class</th><th class="l">Now in</th><th class="l">Move to</th><th>Picks / day</th><th>Location</th></tr></thead><tbody>${cand.slice(0, 12).map(s => `<tr class="click" data-item="${DATA.indexOf(s.x)}"><td>${esc(s.x.name)} <span style="color:var(--muted)">${esc(s.x.sku)}</span></td><td class="l"><span class="pill ${s.cls === 'A' ? 'vi' : 'am'}">${s.cls}</span></td><td class="l">${esc(ZONES.find(z => z.id === s.zone).name)}</td><td class="l">${s.cls === 'A' ? 'Fast pick (golden zone)' : 'Reserve racking'}</td><td>${num(s.picksDay)}</td><td>A${String(s.aisle).padStart(2, '0')}-${String(s.bay).padStart(2, '0')}</td></tr>`).join('')}</tbody></table></div><div class="foot">${cand.length} re-slot candidates${cand.length > 12 ? ' · top 12 by picks shown' : ''}</div>` : '<div class="empty">Every item is slotted to its velocity class</div>';
+  return crumb('Layout', 'Slotting') + opsBar() + `<div class="grid g4">
+    ${tile('Fast movers in golden zone', pct(A.length ? inGold.length / A.length : NaN), `${inGold.length} of ${A.length} A-class items`)}
+    ${tile('Re-slot candidates', num(cand.length), 'Fast movers far away, slow movers up front')}
+    ${tile('Walking saved a day', ok(walk) ? num(walk / 1000) + ' km' : '—', 'If A-items move to the golden zone')}
+    ${tile('Items slotted', num(O.slots.length), 'A 20% · B 30% · C 50% by picks')}
+  </div><div class="grid" style="margin-top:20px">
+    ${card('cPba', 'Picks by Aisle', 'Is pick work concentrated next to dispatch? Golden-zone aisles in violet.', legend([['c1', 'Golden zone A09–A12'], ['c2', 'Other aisles']]) + '<div class="chart" id="pba"></div>', { noPlus: true, cls: 'span2' })}
+    ${card('cMix', 'Golden Zone Mix', 'Who occupies the best pick faces?', '<div class="chart" id="gmix"></div><div class="foot">Ideally only A items here</div>', { noPlus: true })}
+    ${card('cRes', 'Re-slot Candidates', 'Which moves would cut picker walking the most?', t, { noPlus: true, cls: 'span3' })}
+  </div>`;
+}
+function pageCapacity(){
+  const wh = opsWh(), O = OPS[wh]; if (!O) return opsBar() + '<div class="empty">No warehouses loaded</div>';
+  const zones = ZONES.map(z => { const bs = O.bays.filter(b => b.zone === z.id); return { label: z.name.replace(' (golden zone)', ''), value: sum(bs, b => b.used) / (bs.length * LEVELS), target: UTIL_TARGET }; })
+    .concat(O.floor.map(f => ({ label: f.name, value: f.used / f.cap, target: UTIL_TARGET })));
+  zones.forEach(z => z.cls = z.value > UTIL_TARGET ? 'cw' : 'c1');
+  later(() => $('zc') && hbars($('zc'), zones, { fmt: v => pct(v), aria: 'Utilisation by zone' }));
+  later(() => $('wk') && vbars($('wk'), O.weeks.map(w => ({ label: w.label, v: w.v, cls: w.v > UTIL_TARGET ? { v: 'cw' } : null })), [{ key: 'v', cls: 'c1', fmt: v => pct(v), name: 'Utilisation' }], { h: 180, target: UTIL_TARGET, aria: 'Weekly racking utilisation' }));
+  const cap = AISLES * BAYS * LEVELS, used = sum(O.bays, b => b.used), inbound = sum(O.inbound.filter(t => t.status !== 'Completed'), t => t.pallets), out = sum(O.outbound.filter(t => t.status !== 'Departed'), t => t.pallets);
+  const trend = (O.weeks[7].v - O.weeks[3].v) / 4 * cap; const toFull = trend > 0 ? (cap * 0.95 - used) / trend : null;
+  return crumb('Layout', 'Capacity') + opsBar() + `<div class="grid g4">
+    ${tile('Racking utilisation', pct(used / cap), `Target ${pct(UTIL_TARGET)} · ${num(cap - used)} positions free`, used / cap > UTIL_TARGET ? 'warn' : '')}
+    ${tile('Still arriving today', num(inbound) + ' pallets', `${O.inbound.filter(t => t.status !== 'Completed').length} trucks not yet unloaded`)}
+    ${tile('Still leaving today', num(out) + ' pallets', `${O.outbound.filter(t => t.status !== 'Departed').length} trucks not yet departed`)}
+    ${tile('Weeks until 95% full', ok(toFull) ? (toFull > 52 ? '52+' : toFull.toFixed(1)) : 'Stable', ok(toFull) ? `At ${num(trend)} positions a week` : 'Utilisation flat or falling')}
+  </div><div class="grid" style="margin-top:20px">
+    ${card('cZone', 'Utilisation by Zone', 'Which areas are running out of room?', legend([['c1', 'Within target'], ['cw', 'Above target'], ['ln', 'Target ' + pct(UTIL_TARGET)]]) + '<div class="chart" id="zc"></div>', { noPlus: true, cls: 'span2' })}
+    ${card('cWk', 'Racking Utilisation · 8 Weeks', 'Is the building filling up?', '<div class="chart" id="wk"></div>', { noPlus: true })}
+  </div>`;
+}
+
+/* ---------- Inbound pages ---------- */
+const inTip = t => `${t.id} · ${t.supplier}<br>${t.carrier} · ${t.pallets} pallets<br>Slot ${hhmm(t.slot)} · ${t.status === 'Due' || t.status === 'At gate' ? 'expected' : 'arrived'} ${hhmm(t.start)} · door ${t.door}`;
+const inCls = t => t.status === 'Completed' ? 'c2' : t.status === 'Unloading' ? 'c1' : t.status === 'Delayed' || t.late ? 'cw' : 'ca';
+function pageDock(){
+  const wh = opsWh(), O = OPS[wh]; if (!O) return opsBar() + '<div class="empty">No warehouses loaded</div>';
+  const T = O.inbound, arrived = T.filter(t => t.status === 'Completed' || t.status === 'Unloading'), onTime = arrived.filter(t => !t.late);
+  const turn = arrived.filter(t => t.status === 'Completed'); const avgTurn = turn.length ? sum(turn, t => (t.end - t.start) * 60 + 12) / turn.length : null;
+  later(() => $('dg') && gantt($('dg'), IN_DOORS, T.map(t => ({ row: t.door, start: t.start, end: t.end, cls: inCls(t), label: t.supplier.split(' ')[0] + ' · ' + t.pallets + 'p', tip: inTip(t), mark: t.late ? t.slot : null })), { aria: 'Inbound dock schedule' }));
+  const util = IN_DOORS.map(d => ({ label: d, value: sum(T.filter(t => t.door === d), t => t.end - t.start) / (DAY_TO - DAY_FROM) })); util.forEach(u => u.cls = u.value > 0.8 ? 'cw' : 'c1');
+  later(() => $('du') && hbars($('du'), util, { fmt: v => pct(v), aria: 'Door utilisation' }));
+  const next = T.filter(t => t.start > NOW).sort((a, b) => a.start - b.start).slice(0, 5);
+  return crumb('Inbound', 'Dock Schedule') + opsBar() + `<div class="grid g4">
+    ${tile('Trucks booked today', num(T.length), `${num(sum(T, t => t.pallets))} pallets in total`)}
+    ${tile('Arrived', num(arrived.length), `${T.filter(t => t.status === 'Unloading').length} unloading now`)}
+    ${tile('On time', pct(arrived.length ? onTime.length / arrived.length : NaN), `${arrived.length - onTime.length} arrived over 15 min late`, arrived.length && onTime.length / arrived.length < 0.85 ? 'warn' : '')}
+    ${tile('Average turnaround', ok(avgTurn) ? Math.round(avgTurn) + ' min' : '—', 'Gate in to gate out')}
+  </div><div class="grid" style="margin-top:20px">
+    ${card('cDock', 'Inbound Dock Schedule · Doors D1–D6', 'Which doors are busy, and are trucks keeping their slots? Hover a booking for detail.',
+      legend([['c2', 'Completed'], ['c1', 'Unloading'], ['ca', 'Due'], ['cw', 'Late or delayed'], ['mk', 'Booked slot']]) + '<div class="tw"><div class="chart" id="dg"></div></div>', { cls: 'span3', noPlus: true })}
+    ${card('cDu', 'Door Utilisation', 'Share of the 06:00–22:00 window each door is booked.', '<div class="chart" id="du"></div>', { noPlus: true })}
+    ${card('cNext', 'Next Arrivals', 'Who is arriving next, and where should they go?', next.length ? `<div class="tw"><table><thead><tr><th>Time</th><th class="l">Supplier</th><th class="l">Carrier</th><th>Pallets</th><th>Door</th><th class="l">Status</th></tr></thead><tbody>${next.map(t => `<tr><td>${hhmm(t.start)}</td><td class="l">${esc(t.supplier)}</td><td class="l">${esc(t.carrier)}</td><td>${t.pallets}</td><td>${t.door}</td><td class="l">${stPill(t.status)}</td></tr>`).join('')}</tbody></table></div>` : '<div class="empty">No more arrivals today</div>', { noPlus: true, cls: 'span2' })}
+  </div>`;
+}
+function pageArrivals(){
+  const wh = opsWh(), O = OPS[wh]; if (!O) return opsBar() + '<div class="empty">No warehouses loaded</div>';
+  const T = O.inbound.slice().sort((a, b) => a.slot - b.slot);
+  return crumb('Inbound', 'Arrivals') + opsBar() + `<div class="grid">${card('cArr', 'Truck Arrivals Today', 'Every inbound booking, in slot order.', `<div class="tw"><table><thead><tr><th>Truck</th><th class="l">Supplier</th><th class="l">Carrier</th><th class="l">PO</th><th>Slot</th><th>Arrival</th><th>Delay</th><th>Door</th><th>Pallets</th><th>Received</th><th class="l">Status</th></tr></thead>
+    <tbody>${T.map(t => { const d = Math.round((t.start - t.slot) * 60); return `<tr><td>${t.id}</td><td class="l">${esc(t.supplier)}</td><td class="l">${esc(t.carrier)}</td><td class="l">${t.po}</td><td>${hhmm(t.slot)}</td><td>${hhmm(t.start)}</td><td>${d > 15 ? '<span class="w">+' + d + ' min</span>' : d > 0 ? '+' + d + ' min' : 'On time'}</td><td>${t.door}</td><td>${t.pallets}</td><td>${t.received}</td><td class="l">${stPill(t.status)}</td></tr>`; }).join('')}</tbody></table></div>
+    <div class="foot">${T.length} bookings · ${num(sum(T, t => t.received))} of ${num(sum(T, t => t.pallets))} pallets received so far</div>`, { cls: 'span3', noPlus: true })}</div>`;
+}
+function pageReceiving(){
+  const wh = opsWh(), O = OPS[wh]; if (!O) return opsBar() + '<div class="empty">No warehouses loaded</div>';
+  const rec = sum(O.inbound, t => t.received), back = sum(O.inbound, t => t.putaway) + sum(O.inbound.filter(t => t.status === 'Unloading'), t => t.received);
+  const ages = [['< 1 h', 0, 1], ['1–2 h', 1, 2], ['2–4 h', 2, 4], ['4 h +', 4, 99]].map(([l, a, b]) => ({ label: l, v: sum(O.inbound.filter(t => { const age = NOW - t.end; return t.status === 'Completed' && age >= a && age < b; }), t => t.putaway) + (a === 0 ? sum(O.inbound.filter(t => t.status === 'Unloading'), t => t.received) : 0), cls: a >= 2 ? { v: 'cw' } : null }));
+  later(() => $('pa') && vbars($('pa'), ages, [{ key: 'v', cls: 'c1', fmt: num, name: 'Pallets' }], { h: 180, aria: 'Putaway backlog by age' }));
+  later(() => $('rh') && vbars($('rh'), O.recHour, [{ key: 'v', cls: 'ca', fmt: num, name: 'Pallets received' }], { h: 180, noLabels: innerWidth < 900, aria: 'Pallets received by hour' }));
+  const old = sum(ages.slice(2), a => a.v);
+  return crumb('Inbound', 'Receiving') + opsBar() + `<div class="grid g4">
+    ${tile('Pallets received today', num(rec), `${num(sum(O.inbound, t => t.pallets) - rec)} still to come`)}
+    ${tile('Awaiting putaway', num(back), `${O.floor[0].used} of ${O.floor[0].cap} staging spots in use`, O.floor[0].used / O.floor[0].cap > 0.8 ? 'warn' : '')}
+    ${tile('Waiting over 2 hours', num(old), old ? 'Clear before the next wave of arrivals' : 'Backlog under control', old ? 'warn' : '')}
+    ${tile('Receiving rate', O.recHour.length ? num(sum(O.recHour.slice(-3), h => h.v) / 3) + ' / h' : '—', 'Pallets an hour, last three hours')}
+  </div><div class="grid g2" style="margin-top:20px">
+    ${card('cPa', 'Putaway Backlog by Age', 'How long have received pallets been waiting to go into racking?', '<div class="chart" id="pa"></div>', { noPlus: true })}
+    ${card('cRh', 'Pallets Received by Hour', 'When does the receiving dock peak?', '<div class="chart" id="rh"></div>', { noPlus: true })}
+  </div>`;
+}
+
+/* ---------- Dispatch pages ---------- */
+const outTip = t => `${t.id} · ${t.route}<br>${t.vehicle} · ${t.pallets}/${t.cap} pallets (${pct(t.fill)})<br>Load ${hhmm(t.loadStart)}–${hhmm(t.loadEnd)} · depart ${hhmm(t.dep)} · door ${t.door}`;
+const outCls = t => t.status === 'Departed' ? (t.late ? 'cw' : 'c2') : t.status === 'Loading' ? 'c1' : t.status === 'Picking' ? 'ca' : 'cg';
+function pageDispatch(){
+  const wh = opsWh(), O = OPS[wh]; if (!O) return opsBar() + '<div class="empty">No warehouses loaded</div>';
+  const T = O.outbound, gone = T.filter(t => t.status === 'Departed'), onTime = gone.filter(t => !t.late), fillAvg = sum(T, t => t.pallets) / sum(T, t => t.cap);
+  later(() => $('og') && gantt($('og'), OUT_DOORS, T.map(t => ({ row: t.door, start: t.loadStart, end: Math.max(t.loadEnd, t.actDep), cls: outCls(t), label: t.route, tip: outTip(t), mark: t.dep })), { aria: 'Dispatch dock schedule' }));
+  const rows = T.slice().sort((a, b) => a.dep - b.dep);
+  return crumb('Dispatch', 'Dispatch Plan') + opsBar() + `<div class="grid g4">
+    ${tile('Departures today', num(T.length), `${num(sum(T, t => t.orders))} orders · ${num(sum(T, t => t.pallets))} pallets`)}
+    ${tile('Departed', num(gone.length), `${T.filter(t => t.status === 'Loading').length} loading · ${T.filter(t => t.status === 'Picking').length} picking`)}
+    ${tile('On-time departures', pct(gone.length ? onTime.length / gone.length : NaN), `${gone.length - onTime.length} left over 15 min late`, gone.length && onTime.length / gone.length < 0.9 ? 'warn' : '')}
+    ${tile('Average load fill', pct(fillAvg), `Target ${pct(FILL_TARGET)}`, fillAvg < FILL_TARGET ? 'warn' : '')}
+  </div><div class="grid" style="margin-top:20px">
+    ${card('cOg', 'Outbound Dock Schedule · Doors D7–D12', 'Is each truck loading in time for its departure? Hover a truck for detail.',
+      legend([['c2', 'Departed'], ['cw', 'Departed late'], ['c1', 'Loading'], ['ca', 'Picking'], ['cg', 'Planned'], ['mk', 'Planned departure']]) + '<div class="tw"><div class="chart" id="og"></div></div>', { cls: 'span3', noPlus: true })}
+    ${card('cRt', 'Route Plan', 'What leaves when, and how full is it?', `<div class="tw"><table><thead><tr><th>Truck</th><th class="l">Route</th><th class="l">Vehicle</th><th>Pick cut-off</th><th>Departure</th><th>Door</th><th>Orders</th><th>Load</th><th>Picked</th><th class="l">Status</th></tr></thead><tbody>${rows.map(t => `<tr><td>${t.id}</td><td class="l">${esc(t.route)}</td><td class="l">${esc(t.vehicle)}</td><td>${hhmm(t.cutoff)}</td><td>${hhmm(t.dep)}${t.late && t.status === 'Departed' ? ' <span class="w">(' + hhmm(t.actDep) + ')</span>' : ''}</td><td>${t.door}</td><td>${t.orders}</td><td><span class="minibar"><i class="${t.fill < FILL_TARGET ? 'w' : ''}" style="width:${t.fill * 100}%"></i><em style="left:${FILL_TARGET * 100}%"></em></span>${t.pallets}/${t.cap}</td><td>${pct(t.pickPct)}</td><td class="l">${stPill(t.status)}</td></tr>`).join('')}</tbody></table></div>`, { cls: 'span3', noPlus: true })}
+  </div>`;
+}
+function pagePipeline(){
+  const wh = opsWh(), O = OPS[wh]; if (!O) return opsBar() + '<div class="empty">No warehouses loaded</div>';
+  const T = O.outbound, rel = sum(T.filter(t => t.status !== 'Planned'), t => t.orders);
+  const picked = sum(T, t => Math.round(t.orders * t.pickPct)), packed = sum(T.filter(t => t.status === 'Departed' || t.status === 'Loading'), t => t.orders) + Math.round(sum(T.filter(t => t.status === 'Picking'), t => t.orders * t.pickPct * 0.6));
+  const loaded = sum(T.filter(t => t.status === 'Departed'), t => t.orders) + sum(T.filter(t => t.status === 'Loading'), t => Math.round(t.orders * t.loaded / t.pallets)), shipped = sum(T.filter(t => t.status === 'Departed'), t => t.orders);
+  const total = sum(T, t => t.orders);
+  const steps = [['Due today', total], ['Released', rel], ['Picked', picked], ['Packed', packed], ['Loaded', loaded], ['Shipped', shipped]].map(([l, v], i) => ({ label: l, value: v, cls: i === 0 ? 'c2' : i === 5 ? 'ca' : 'c1' }));
+  later(() => $('fn') && hbars($('fn'), steps, { fmt: v => num(v) + (total ? ' · ' + pct(v / total) : ''), aria: 'Order pipeline' }));
+  const risk = T.filter(t => t.status === 'Picking' && (t.cutoff - NOW) < 1.5 && t.pickPct < 0.8).sort((a, b) => a.cutoff - b.cutoff);
+  return crumb('Dispatch', 'Order Pipeline') + opsBar() + `<div class="grid g4">
+    ${tile('Orders due today', num(total), `${num(sum(O.waves, w => w.lines))} pick lines across ${O.waves.length} waves`)}
+    ${tile('Shipped', pct(total ? shipped / total : NaN), `${num(shipped)} orders on departed trucks`)}
+    ${tile('Lines picked', pct(sum(O.waves, w => w.picked) / Math.max(1, sum(O.waves, w => w.lines))), `${num(sum(O.waves, w => w.picked))} of ${num(sum(O.waves, w => w.lines))}`)}
+    ${tile('Trucks at cut-off risk', num(risk.length), risk.length ? 'Under 80% picked, cut-off within 90 min' : 'All trucks on track', risk.length ? 'warn' : '')}
+  </div><div class="grid" style="margin-top:20px">
+    ${card('cFn', 'Order Pipeline', 'How far through the day’s work are we?', '<div class="chart" id="fn"></div>', { noPlus: true, cls: 'span2' })}
+    ${card('cRisk', 'Cut-off Risk', 'Which trucks may leave without all their orders?', risk.length ? risk.map(t => `<div class="riskrow"><div><b>${esc(t.route)}</b><div class="s">${t.id} · door ${t.door} · cut-off ${hhmm(t.cutoff)}</div></div><div class="r"><b class="w">${pct(t.pickPct)}</b><div class="s">picked</div></div></div>`).join('') : '<div class="empty">No trucks at risk</div>', { noPlus: true })}
+    ${card('cWv', 'Pick Waves', 'Is each wave finishing before the next one is released?', `<div class="tw"><table><thead><tr><th>Wave</th><th>Release</th><th>Orders</th><th>Lines</th><th>Pickers</th><th>Progress</th><th class="l">Status</th></tr></thead><tbody>${O.waves.map(w => `<tr><td>${w.wave}</td><td>${hhmm(w.release)}</td><td>${num(w.orders)}</td><td>${num(w.lines)}</td><td>${w.pickers}</td><td><span class="minibar"><i style="width:${w.picked / w.lines * 100}%"></i></span>${pct(w.picked / w.lines)}</td><td class="l">${stPill(w.status)}</td></tr>`).join('')}</tbody></table></div>`, { noPlus: true, cls: 'span3' })}
+  </div>`;
+}
+function pageFleet(){
+  const wh = opsWh(), O = OPS[wh]; if (!O) return opsBar() + '<div class="empty">No warehouses loaded</div>';
+  const T = O.outbound.slice().sort((a, b) => a.dep - b.dep);
+  later(() => $('lf') && hbars($('lf'), T.map(t => ({ label: hhmm(t.dep) + ' ' + t.route, value: t.fill, target: FILL_TARGET, cls: t.fill < FILL_TARGET ? 'cw' : 'c1' })), { fmt: v => pct(v), aria: 'Load fill by truck' }));
+  const vt = [...new Set(T.map(t => t.vehicle))].map(v => { const g = T.filter(t => t.vehicle === v); return { label: v, trucks: g.length, pallets: sum(g, t => t.pallets), cap: sum(g, t => t.cap) }; });
+  later(() => $('vm') && vbars($('vm'), vt.map(v => ({ label: v.label, used: v.pallets, free: v.cap - v.pallets })), [{ key: 'used', cls: 'c1', fmt: num, name: 'Pallets loaded' }, { key: 'free', cls: 'c2', fmt: num, name: 'Empty spaces' }], { h: 180, aria: 'Pallets by vehicle type' }));
+  const empty = sum(T, t => t.cap - t.pallets), low = T.filter(t => t.fill < 0.7);
+  return crumb('Dispatch', 'Fleet & Loads') + opsBar() + `<div class="grid g4">
+    ${tile('Trucks scheduled', num(T.length), vt.map(v => v.trucks + ' × ' + v.label.split(' ')[0]).join(' · '))}
+    ${tile('Pallet spaces', num(sum(T, t => t.cap)), `${num(sum(T, t => t.pallets))} filled`)}
+    ${tile('Empty spaces', num(empty), 'Room to consolidate or add orders', empty > sum(T, t => t.cap) * 0.2 ? 'warn' : '')}
+    ${tile('Under 70% full', num(low.length), low.length ? 'Candidates to merge routes' : 'All loads well used', low.length ? 'warn' : '')}
+  </div><div class="grid" style="margin-top:20px">
+    ${card('cLf', 'Load Fill by Truck', 'Are we paying to move empty space?', legend([['c1', 'At or above target'], ['cw', 'Below target'], ['ln', 'Target ' + pct(FILL_TARGET)]]) + '<div class="chart" id="lf"></div>', { noPlus: true, cls: 'span2' })}
+    ${card('cVm', 'Space by Vehicle Type', 'Which vehicle types run emptiest?', legend([['c1', 'Pallets loaded'], ['c2', 'Empty spaces']]) + '<div class="chart" id="vm"></div>', { noPlus: true })}
+  </div>`;
+}
+
+/* =========================================================
+   Page chrome
+   ========================================================= */
+const basisSeg = () => `<div class="seg"><span>Valuation basis</span><button type="button" data-basis="cost" aria-pressed="${S.basis === 'cost'}">At cost</button><button type="button" data-basis="retail" aria-pressed="${S.basis === 'retail'}">At retail</button></div>`;
+const bar = withBasis => `<div class="bar"><span>FY 2026 · USD · as of ${dt(AS_OF)} ${AS_OF.getFullYear()}${S.wh !== 'all' ? ' · ' + esc(S.wh) : ''}</span>${withBasis ? basisSeg() : ''}</div>`;
+const crumb = (a, b) => `<div class="crumb">${b ? esc(a) : 'Stock'} · <b>${esc(b || a)}</b></div>`;
+
+function renderNav(){
+  $('pillars').innerHTML = PILLARS.map(p => `<button role="tab" type="button" data-p="${p.id}" aria-selected="${S.p === p.id}">${p.label}</button>`).join('');
+  const P = PILLARS.find(p => p.id === S.p);
+  $('subs').innerHTML = P && P.subs ? P.subs.map(([id, l]) => `<button role="tab" type="button" data-s="${id}" aria-selected="${S.s === id}">${l}</button>`).join('') : '';
+  const whs = [...new Set(DATA.map(x => x.warehouse))].sort();
+  if (S.wh !== 'all' && !whs.includes(S.wh)) S.wh = 'all';
+  $('wh').innerHTML = `<option value="all">All warehouses (${whs.length})</option>` + whs.map(w => `<option ${S.wh === w ? 'selected' : ''}>${esc(w)}</option>`).join('');
+}
+function render(){
+  if (!PILLARS.some(p => p.id === S.p)) S.p = 'stock';
+  const P = PILLARS.find(p => p.id === S.p);
+  if (P.subs && !P.subs.some(s => s[0] === S.s)) S.s = P.subs[0][0];
+  renderNav(); DRAW.length = 0;
+  if (makeOps.data !== DATA) { makeOps(); makeOps.data = DATA; }
+  const OPSP = { floor: pageFloor, slot: pageSlotting, cap: pageCapacity, dock: pageDock, arr: pageArrivals, rec: pageReceiving, plan: pageDispatch, pipe: pagePipeline, fleet: pageFleet };
+  const html = OPSP[S.s] && ['layout','inbound','dispatch'].includes(S.p) ? OPSP[S.s]() : S.p === 'cost' ? pageCost() : S.s === 'category' ? pageCategory() : S.s === 'sku' ? pageItems() : S.s === 'moves' ? pageMoves() : pageOverview();
+  $('main').innerHTML = html + `<footer class="fn">Targets: ${TARGET_DOS} days of supply · excess above ${EXCESS_DOS} days · aged above ${AGED_DAYS} days · carrying cost ${pct(CARRY_RATE)} a year. ${SOURCE === 'sample' ? 'Figures are fictional sample data.' : ''}</footer>`;
+  DRAW.forEach(f => { try { f(); } catch (e) { console.error(e); } });
+  saveHash();
+}
+
+/* =========================================================
+   Detail drawer
+   ========================================================= */
+function openDrawer(title, sub, html, after){
+  $('dTitle').textContent = title; $('dSub').textContent = sub || ''; $('dBody').innerHTML = html;
+  $('drawer').classList.add('on'); $('scrim').classList.add('on'); $('drawer').setAttribute('aria-hidden', 'false');
+  if (after) requestAnimationFrame(after); $('dClose').focus();
+}
+function closeDrawer(){ $('drawer').classList.remove('on'); $('scrim').classList.remove('on'); $('drawer').setAttribute('aria-hidden', 'true'); }
+const tbl = (head, body) => `<div class="tw"><table><thead><tr>${head.map((h, i) => `<th class="${i === 0 ? 'l' : ''}">${h}</th>`).join('')}</tr></thead><tbody>${body.join('') || `<tr><td colspan="${head.length}" class="empty" style="text-align:center">No rows</td></tr>`}</tbody></table></div>`;
+const DETAILS = {
+  cStock(){ const rs = rows(); return ['Stock vs Target', 'By category, ' + (S.basis === 'retail' ? 'at retail' : 'at cost'),
+    tbl(['Category','On hand','On order','Target','Deviation','Days of supply'], cats(rs).map(c => { const a = agg(rs.filter(x => x.category === c)); return `<tr><td>${esc(c)}</td><td>${money(a.v)}</td><td>${money(a.ordV)}</td><td>${money(a.target)}</td><td>${signed(a.dev, money, true)}</td><td>${Math.round(a.dos)}</td></tr>`; }))]; },
+  cShort(){ const s = agg(rows()).short.sort((a, b) => (b.rop - b.onHand) * uv(b) - (a.rop - a.onHand) * uv(a)); return ['Top Shortages', s.length + ' items below reorder point, largest shortfall first',
+    tbl(['Item','Warehouse','On hand','Reorder pt','Shortfall','On order','ETA'], s.map(x => `<tr class="click" data-item="${DATA.indexOf(x)}"><td>${esc(x.name)}</td><td>${esc(x.warehouse)}</td><td>${num(x.onHand)}</td><td>${num(x.rop)}</td><td>${money((x.rop - x.onHand) * uv(x))}</td><td>${x.onOrder ? num(x.onOrder) : '<span class="w">None</span>'}</td><td>${dt(x.eta)}</td></tr>`))]; },
+  cInb(){ const o = agg(rows()).ord.sort((a, b) => (a.eta || 0) - (b.eta || 0)); return ['Replenishment Health', o.length + ' open order lines by expected date',
+    tbl(['Item','Warehouse','Qty','Value','ETA','On hand'], o.map(x => `<tr class="click" data-item="${DATA.indexOf(x)}"><td>${esc(x.name)}</td><td>${esc(x.warehouse)}</td><td>${num(x.onOrder)}</td><td>${money(x.onOrder * uv(x))}</td><td>${x.eta && x.eta < AS_OF ? '<span class="w">' + dt(x.eta) + ' · past due</span>' : dt(x.eta)}</td><td>${num(x.onHand)}</td></tr>`))]; },
+  cMove(){ const rs = rows(), hm = histMonths(); return ['Movements and Write-offs', 'By month, at cost',
+    tbl(['Month','Receipts','Issues','Net','Write-offs'], MONTHS.slice(0, hm).map((m, i) => { const r = sum(rs, x => x.hist ? x.hist.rec[i] * x.cost : 0), s = sum(rs, x => x.hist ? x.hist.iss[i] * x.cost : 0), w = sum(rs, x => x.hist ? x.hist.wo[i] * x.cost : 0); return `<tr><td>${m}</td><td>${money(r)}</td><td>${money(s)}</td><td>${signed(r - s, money, true)}</td><td>${money(w)}</td></tr>`; }))]; },
+  cCat(){ return DETAILS.cStock(); },
+  cMon(){ return DETAILS.cMove(); }
+};
+function itemDrawer(x){
+  const hm = x.hist ? x.hist.iss.length : 0;
+  openDrawer(x.name, `${x.sku} · ${x.category} · ${x.warehouse}`,
+    `<div class="kv"><div><div class="k">On hand</div><div class="v">${num(x.onHand)}</div></div><div><div class="k">Reorder point</div><div class="v">${num(x.rop)}</div></div>
+     <div><div class="k">Days of supply</div><div class="v">${x.demand ? Math.round(x.onHand / x.demand) : '—'}</div></div><div><div class="k">Status</div><div class="v"><span class="pill ${pillCls[status(x)]}">${status(x)}</span></div></div>
+     <div><div class="k">On order</div><div class="v">${x.onOrder ? num(x.onOrder) : '—'}</div></div><div><div class="k">Expected</div><div class="v">${dt(x.eta)}</div></div>
+     <div><div class="k">Unit cost / price</div><div class="v">$${x.cost.toFixed(2)} / $${x.price.toFixed(2)}</div></div><div><div class="k">Average age</div><div class="v">${num(x.age)} d</div></div></div>
+     <div class="lab">Monthly receipts and issues · units</div>${legend([['c1', 'Receipts'], ['cw', 'Issues']])}<div class="chart" id="itc"></div>`,
+    () => vbars($('itc'), hm ? MONTHS.slice(0, hm).map((m, i) => ({ label: m, rec: x.hist.rec[i], iss: x.hist.iss[i] })) : [], [{ key: 'rec', cls: 'c1', fmt: num, name: 'Receipts' }, { key: 'iss', cls: 'cw', fmt: num, name: 'Issues' }], { h: 180, noLabels: true, aria: 'Item movements' }));
+}
+
+/* =========================================================
+   Events
+   ========================================================= */
+document.addEventListener('click', e => {
+  const t = e.target.closest('button,tr,th'); if (!t) return;
+  if (t.dataset.p) { S.p = t.dataset.p; render(); }
+  else if (t.dataset.s) { S.s = t.dataset.s; render(); }
+  else if (t.dataset.fmode) { S.fmode = t.dataset.fmode; render(); }
+  else if (t.dataset.basis) { S.basis = t.dataset.basis; render(); }
+  else if (t.dataset.detail && DETAILS[t.dataset.detail]) { const [a, b, c] = DETAILS[t.dataset.detail](); openDrawer(a, b, c); }
+  else if (t.dataset.item) itemDrawer(DATA[+t.dataset.item]);
+  else if (t.dataset.cat) { S.cat = t.dataset.cat; S.status = 'all'; S.s = 'sku'; render(); }
+  else if (t.dataset.status) { S.status = t.dataset.status; document.querySelectorAll('[data-status]').forEach(c => c.setAttribute('aria-pressed', c.dataset.status === S.status)); $('itemT').innerHTML = itemTable(); }
+  else if (t.dataset.sort) { S.sort = [t.dataset.sort, S.sort[0] === t.dataset.sort ? -S.sort[1] : (['sku','name','category','warehouse','status'].includes(t.dataset.sort) ? 1 : -1)]; $('itemT').innerHTML = itemTable(); }
+  else if (t.id === 'exp') exportCsv(itemRows());
+});
+document.addEventListener('input', e => { if (e.target.id === 'q') { S.q = e.target.value; $('itemT').innerHTML = itemTable(); } });
+document.addEventListener('change', e => { if (e.target.id === 'catSel') { S.cat = e.target.value; $('itemT').innerHTML = itemTable(); } });
+$('wh').addEventListener('change', e => { S.wh = e.target.value; render(); });
+$('scrim').addEventListener('click', closeDrawer); $('dClose').addEventListener('click', closeDrawer);
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
+let rw = innerWidth, rt; addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { if (innerWidth !== rw) { rw = innerWidth; render(); } }, 150); });
+
+/* =========================================================
+   Load / export
+   ========================================================= */
+const HEAD = ['sku','name','category','warehouse','unit_cost','unit_price','on_hand','reorder_point','avg_daily_demand','on_order','inbound_eta','age_days','fill_rate','wo_reason'];
+const ML = MONTHS.map(m => m.toLowerCase());
+function download(name, text){ const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type: 'text/csv' })); a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500); }
+const csvCell = v => { const s = String(v == null ? '' : v); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+const isoD = d => d ? d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0') : '';
+function toCsv(list){
+  const hm = histMonths(), extra = hm ? ['rec','iss','wo'].flatMap(k => ML.slice(0, hm).map(m => k + '_' + m)) : [];
+  return [[...HEAD, ...extra].join(','), ...list.map(x => [x.sku, x.name, x.category, x.warehouse, x.cost, x.price, x.onHand, x.rop, x.demand, x.onOrder, isoD(x.eta), x.age, ok(x.fill) ? x.fill.toFixed(3) : '', x.woReason || '',
+    ...(hm ? ['rec','iss','wo'].flatMap(k => x.hist ? x.hist[k] : Array(hm).fill('')) : [])].map(csvCell).join(','))].join('\n');
+}
+function exportCsv(list){ download('inventory_items.csv', toCsv(list)); }
+function parseCsv(text){
+  const out = []; let row = [], f = '', q = false;
+  for (let i = 0; i < text.length; i++) { const c = text[i];
+    if (q) { if (c === '"' && text[i + 1] === '"') { f += '"'; i++; } else if (c === '"') q = false; else f += c; }
+    else if (c === '"') q = true; else if (c === ',') { row.push(f); f = ''; } else if (c === '\n' || c === '\r') { if (c === '\r' && text[i + 1] === '\n') i++; row.push(f); out.push(row); row = []; f = ''; } else f += c; }
+  if (f || row.length) { row.push(f); out.push(row); }
+  return out.filter(r => r.some(c => c.trim() !== ''));
+}
+function loadCsv(text, name){
+  const t = parseCsv(text.replace(/^﻿/, '')); if (t.length < 2) throw new Error('The file has no data rows.');
+  const h = t[0].map(x => x.trim().toLowerCase().replace(/\s+/g, '_'));
+  const need = HEAD.slice(0, 12).filter(k => !h.includes(k)); if (need.length) throw new Error('Missing columns: ' + need.join(', '));
+  const ix = k => h.indexOf(k), n = (r, k) => { const v = parseFloat(String(r[ix(k)] || '').replace(/[$,\s]/g, '')); return isFinite(v) ? v : 0; };
+  const hmCols = ML.filter(m => ix('iss_' + m) >= 0);
+  const list = t.slice(1).map(r => { const eta = r[ix('inbound_eta')] ? new Date(r[ix('inbound_eta')]) : null;
+    const x = { sku: r[ix('sku')], name: r[ix('name')], category: r[ix('category')] || 'Uncategorised', warehouse: r[ix('warehouse')] || 'Unassigned',
+      cost: n(r, 'unit_cost'), price: n(r, 'unit_price'), onHand: n(r, 'on_hand'), rop: n(r, 'reorder_point'), demand: n(r, 'avg_daily_demand'), onOrder: n(r, 'on_order'),
+      eta: eta && !isNaN(eta) ? eta : null, age: n(r, 'age_days'), fill: ix('fill_rate') >= 0 && r[ix('fill_rate')] !== '' ? n(r, 'fill_rate') : NaN, woReason: ix('wo_reason') >= 0 ? r[ix('wo_reason')] : '' };
+    if (hmCols.length) x.hist = { rec: hmCols.map(m => ix('rec_' + m) >= 0 ? n(r, 'rec_' + m) : 0), iss: hmCols.map(m => n(r, 'iss_' + m)), wo: hmCols.map(m => ix('wo_' + m) >= 0 ? n(r, 'wo_' + m) : 0) };
+    return x; });
+  DATA = list; SOURCE = name; S.wh = 'all'; S.cat = 'all'; S.status = 'all'; render();
+  return list.length;
+}
+const dlg = $('loadDlg');
+$('loadBtn') && $('loadBtn').addEventListener('click', () => { $('loadMsg').textContent = ''; dlg.showModal ? dlg.showModal() : dlg.setAttribute('open', ''); });
+$('closeDlg').addEventListener('click', () => dlg.close());
+$('sampleBtn').addEventListener('click', () => { DATA = makeSample(); SOURCE = 'sample'; render(); dlg.close(); });
+$('blankBtn').addEventListener('click', () => { DATA = []; SOURCE = 'blank'; render(); dlg.close(); });
+$('tplBtn').addEventListener('click', () => download('inventory_template.csv', [...HEAD, ...['rec','iss','wo'].flatMap(k => ML.map(m => k + '_' + m))].join(',') + '\n'));
+$('file').addEventListener('change', e => { const f = e.target.files[0]; if (!f) return; const rd = new FileReader();
+  rd.onload = () => { try { const c = loadCsv(rd.result, f.name); $('loadMsg').innerHTML = '<span class="p">Loaded ' + c + ' rows from ' + esc(f.name) + '.</span>'; } catch (err) { $('loadMsg').innerHTML = '<span class="n">' + esc(err.message) + '</span>'; } };
+  rd.readAsText(f); e.target.value = ''; });
+
+render();
+})();
+</script>
+</body>
+</html>
