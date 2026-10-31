@@ -4,6 +4,19 @@ A single-file, browser-based inventory and warehouse operations dashboard. No bu
 
 It opens with fictional sample data so you can explore right away, and you can load your own CSV. Your file is read in the browser only; nothing is uploaded or saved.
 
+![Stock overview](docs/screenshots/overview.png)
+
+## Screenshots
+
+| | |
+|---|---|
+| **Category View**<br>![Category View](docs/screenshots/category-view.png) | **Item View**<br>![Item View](docs/screenshots/item-view.png) |
+| **Warehouse Floor Plan**<br>![Floor Plan](docs/screenshots/floor-plan.png) | **Inbound Dock Schedule**<br>![Dock Schedule](docs/screenshots/dock-schedule.png) |
+| **Dispatch Plan**<br>![Dispatch Plan](docs/screenshots/dispatch-plan.png) | **Cost**<br>![Cost](docs/screenshots/cost.png) |
+| **Dark mode**<br>![Overview in dark mode](docs/screenshots/overview-dark.png) | |
+
+All figures shown are fictional sample data.
+
 ## Features
 
 **Stock**
